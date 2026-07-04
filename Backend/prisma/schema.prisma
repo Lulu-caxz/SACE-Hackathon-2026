@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DB_URL")
+}
+
+enum Role {
+  ALUNO
+  INSPETORA  
+  DIRECAO
+  SECRETARIA
+  NUTRICAO
+}
+
+enum DiaSemana {
+  SEGUNDA
+  TERCA
+  QUARTA
+  QUINTA
+  SEXTA
+}
+
+enum TipoRefeicao {
+  CAFE_MANHA
+  ALMOCO
+  CAFE_TARDE
+  JANTA
+  REFEICAO_E_LANCHE
+}
+
+enum FaixaEtaria {
+  CRECHE_0_A_3
+  INFANTIL_4_A_5
+  FUNDAMENTAL_6_A_10
+  FUNDAMENTAL_11_A_15
+  EJA
+}
+
+model Escola {
+  id        String @id @default(uuid())
+  nome      String
+
+  usuarios  Usuario[]
+  cardapios CardapioSemanal[]
+
+  @@map("escolas")
+}
+
+model Usuario {
+  id        String @id @default(uuid())
+
+  role      Role
+
+  nome      String
+  email     String @unique
+  password  String
+
+  cpf       String @unique @db.VarChar(11)
+
+  escolaId  String?
+  escola    Escola? @relation(fields: [escolaId], references: [id])
+
+  registrosInspecao RegistroInspecao[]
+
+  @@map("usuarios")
+}
+
+model ReferenciaNutricional {
+  id          String      @id @default(uuid())
+  faixaEtaria FaixaEtaria @unique
+  dieta       String      @default("DIETA GERAL")
+
+  kcalAlvo    Float
+  choMin      Float
+  choMax      Float
+  ptnMin      Float
+  ptnMax      Float
+  lipMin      Float
+  lipMax      Float
+  sodioMaxMg  Float
+
+  @@map("referencias_nutricionais")
+}
+
+model CardapioSemanal {
+  id        String @id @default(uuid())
+
+  escolaId  String
+  escola    Escola @relation(fields: [escolaId], references: [id])
+
+  mes       Int
+  ano       Int
+  semana    DateTime @db.Date
+  criadoEm  DateTime @default(now())
+
+  dias      CardapioDia[]
+
+  @@map("cardapios_semanais")
+}
+
+model CardapioDia {
+  id         String @id @default(uuid())
+
+  cardapioId String
+  cardapio   CardapioSemanal @relation(fields: [cardapioId], references: [id], onDelete: Cascade)
+
+  dia        DiaSemana
+
+  refeicoes  Refeicao[]
+
+
+  registro   RegistroInspecao?
+
+  @@map("cardapios_dias")
+}
+
+model Refeicao {
+  id            String @id @default(uuid())
+
+  cardapioDiaId String
+  cardapioDia   CardapioDia @relation(fields: [cardapioDiaId], references: [id], onDelete: Cascade)
+
+  tipo          TipoRefeicao
+  descricao     String
+
+  nutricionais  InformacaoNutricional[]
+
+  @@map("refeicoes")
+}
+
+model InformacaoNutricional {
+  id          String      @id @default(uuid())
+
+  refeicaoId  String
+  refeicao    Refeicao    @relation(fields: [refeicaoId], references: [id], onDelete: Cascade)
+
+  faixaEtaria FaixaEtaria
+  dieta       String      @default("DIETA GERAL")
+
+  kcal        Float
+  cho         Float
+  ptn         Float
+  lip         Float
+  sodioMg     Float
+
+  observacoes String?
+
+  @@unique([refeicaoId, faixaEtaria, dieta])
+  @@map("informacoes_nutricionais")
+}
+
+model RegistroInspecao {
+  id              String      @id @default(uuid())
+
+  cardapioDiaId   String      @unique
+  cardapioDia     CardapioDia @relation(fields: [cardapioDiaId], references: [id], onDelete: Cascade)
+
+  inspetoraId     String
+  inspetora       Usuario     @relation(fields: [inspetoraId], references: [id])
+
+  data            DateTime    @db.Date
+
+
+  alunosPresentes Int
+
+
+  pratosServidos  Int
+
+
+  comidaFeitaKg   Float
+  sobraKg         Float
+
+  observacoes     String?
+  criadoEm        DateTime    @default(now())
+
+  @@map("registros_inspecao")
+}

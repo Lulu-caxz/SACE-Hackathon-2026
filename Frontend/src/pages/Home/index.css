@@ -1,0 +1,160 @@
+.title-top {
+    margin-top: 150px;
+    justify-self: center;
+    justify-content: center;
+}
+
+.title-mid {
+    width: 350px;
+    height: 330px;
+    margin-top: 100px;
+    justify-self: center;
+    justify-content: center;
+}
+
+.input {
+    height: 35px;
+    border: 2px solid var(--blue);
+    border-radius: 5px;
+    margin-bottom: 25px;
+    padding: 12px 20px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.input img {
+    position: absolute;
+    right: 20px;
+    transform: rotateZ(90deg);
+}
+
+.section-down {
+    width: 300px;
+    text-align: center;
+    justify-self: center;
+    justify-content: center;
+}
+
+.title-top .text-bold {
+    height: 16px;
+}
+
+.select {
+    position: relative;
+    width: 100%;
+}
+
+.options {
+    position: absolute;
+    width: 100%;
+    margin-top: 5px;
+    background: white;
+    border: 2px solid var(--blue);
+    border-radius: 5px;
+    overflow: hidden;
+    z-index: 100;
+}
+
+.option {
+    padding: 14px 20px;
+    font-family: "Montserrat", sans-serif;
+    font-size: 14px;
+    color: var(--blue);
+    cursor: pointer;
+}
+
+.option:hover {
+    background: #f2f6fa;
+}
+
+.arrow {
+    transition: transform .2s;
+}
+
+.arrow.open {
+    transform: rotate(-90deg);
+}
+
+.input {
+    cursor: pointer;
+}
+
+.input input {
+    width: 100%;
+    font-family: "Montserrat", sans-serif;
+    font-size: 14px;
+}
+
+.btn-login {
+    width: 100%;
+    height: 42px;
+    border: none;
+    border-radius: 5px;
+    background: var(--blue);
+    color: white;
+    font-family: "gunters medium", sans-serif;
+    font-size: 18px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.btn-login:hover {
+    opacity: .9;
+}
+
+.container-grid {
+  width: 100%;
+
+  display: flex;
+  flex-direction: row;
+}
+
+.card {
+  height: 100%;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0%;
+  flex: 1;
+  justify-self: center;
+}
+
+.card-login {
+    position: sticky;
+}
+
+.container-card {
+  height: 100%;
+  flex-grow: 2;
+  flex-shrink: 2;
+  flex-basis: 0%;
+  flex: 2;
+  display: flex;
+  flex-direction: row;
+}
+
+@media screen and (max-width: 750px) {
+    .container-grid {
+        flex-direction: column;
+    }
+    .container-grid > * {
+        height: auto;
+        flex-grow: auto;
+        flex-shrink: auto;
+        flex-basis: auto;
+        flex: auto;
+    }
+    .section-down {
+        margin-bottom: 100px;
+    }
+}
+
+@media screen and (max-width: 1090px) {
+    .container-card {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex: 1;
+    flex-direction: column;
+    }
+}
