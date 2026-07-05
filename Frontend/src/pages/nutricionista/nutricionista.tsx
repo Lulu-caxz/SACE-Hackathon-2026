@@ -294,7 +294,7 @@ export default function NutricionistaApp() {
 
     function formatarTitulo(c: Cardapio) {
         if (c.dataInicial && c.dataFinal) return `Cardápio - ${c.dataInicial} a ${c.dataFinal}`;
-        return `Cardápio #${c.id}`;
+        return `Cardápio`;
     }
 
     return (

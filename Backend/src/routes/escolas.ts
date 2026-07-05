@@ -140,7 +140,7 @@ router.get('/:id/dashboard', async (req, res) => {
             by: ['data'],
             where: {
                 escolaId: id,
-                data: { }
+                data: {}
             },
             _sum: { totalAlunos: true }
         });
@@ -162,7 +162,7 @@ router.get('/:id/dashboard', async (req, res) => {
             by: ['data'],
             where: {
                 escolaId: id,
-                data: {  }
+                data: {}
             },
             _sum: { sobraKg: true }
         });
@@ -192,8 +192,8 @@ router.get('/:id/dashboard', async (req, res) => {
 
             graficoDesperdicio: desperdicioPorDia.map(d => ({
                 dia: new Date(d.data).toLocaleDateString('pt-BR'),
-                valor: d._sum.sobraKg ?? 0,
-                label: `${d._sum.sobraKg ?? 0}kg`
+                valor: d._sum?.sobraKg ?? 0,
+                label: `${d._sum?.sobraKg ?? 0}kg`
             })),
 
             // Lista "flat" (um item por lote) — usada tanto pela tabela

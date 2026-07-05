@@ -23,14 +23,6 @@ enum DiaSemana {
   SEXTA
 }
 
-enum TipoRefeicao {
-  CAFE_MANHA
-  ALMOCO
-  CAFE_TARDE
-  JANTA
-  REFEICAO_E_LANCHE
-}
-
 enum FaixaEtaria {
   CRECHE_0_A_3
   INFANTIL_4_A_5
@@ -55,22 +47,21 @@ model Escola {
   diretor    String
   supervisor String
 
-  usuarios Usuario[]
-
-  estoque   Estoque?   @relation
+  usuarios            Usuario[]
+  estoque             Estoque?
+  registrosInspecao   RegistroInspecao[]
+  contagens           Contagem[]
+  solicitacoesEstoque SolicitacaoEstoque[]
 
   @@map("escolas")
 }
 
 model Usuario {
   id       String @id @default(uuid())
-
   role     Role
-
   nome     String
   email    String @unique
   password String
-
   cpf      String @unique @db.VarChar(11)
 
   escolaId          String?
@@ -85,7 +76,6 @@ model ReferenciaNutricional {
   id          String      @id @default(uuid())
   faixaEtaria FaixaEtaria @unique
   dieta       String      @default("DIETA GERAL")
-
   kcalAlvo    Float
   choMin      Float
   choMax      Float
@@ -99,26 +89,30 @@ model ReferenciaNutricional {
 }
 
 model CardapioSemanal {
-  id       String   @id @default(uuid())
+  id               String         @id @default(uuid())
+  mes              Int
+  ano              Int
+  semana           DateTime?      @db.Date
+  dataInicial      DateTime?      @db.Date
+  dataFinal        DateTime?      @db.Date
+  criadoEm         DateTime       @default(now())
+  atualizadoEm     DateTime       @updatedAt
+  status           String         @default("Esperando")
+  motivoReprovacao String?        @db.Text
 
-  mes      Int
-  ano      Int
-  semana   DateTime @db.Date
-  criadoEm DateTime @default(now())
-  status   String   @default("Esperando")
-  motivoReprovacao String?  @db.Text
-  dias     CardapioDia[]
+  dias         CardapioDia[]
+  nutricionais InformacaoNutricional[]
+  notificacoes Notificacao[]
 
   @@map("cardapios_semanais")
 }
 
 model CardapioDia {
   id         String          @id @default(uuid())
-
   cardapioId String
   cardapio   CardapioSemanal @relation(fields: [cardapioId], references: [id], onDelete: Cascade)
-
   dia        DiaSemana
+  data       DateTime?       @db.Date
 
   refeicoes Refeicao[]
   registro  RegistroInspecao?
@@ -128,33 +122,31 @@ model CardapioDia {
 
 model Refeicao {
   id            String      @id @default(uuid())
-
   cardapioDiaId String
   cardapioDia   CardapioDia @relation(fields: [cardapioDiaId], references: [id], onDelete: Cascade)
 
-  tipo          TipoRefeicao
-  descricao     String
+  tipo          String     
+  descricao     String      @db.Text
 
-  nutricionais InformacaoNutricional[]
+  nutricionais  InformacaoNutricional[]
 
   @@map("refeicoes")
 }
 
 model InformacaoNutricional {
-  id          String      @id @default(uuid())
-
-  refeicaoId  String
-  refeicao    Refeicao    @relation(fields: [refeicaoId], references: [id], onDelete: Cascade)
-
-  faixaEtaria FaixaEtaria
-  dieta       String      @default("DIETA GERAL")
-
+  id          String           @id @default(uuid())
+  refeicaoId  String?
+  refeicao    Refeicao?        @relation(fields: [refeicaoId], references: [id], onDelete: Cascade)
+  cardapioId  String?
+  cardapio    CardapioSemanal? @relation(fields: [cardapioId], references: [id], onDelete: Cascade)
+  diaAbrev    String?
+  faixaEtaria FaixaEtaria?
+  dieta       String           @default("DIETA GERAL")
   kcal        Float
   cho         Float
   ptn         Float
   lip         Float
   sodioMg     Float
-
   observacoes String?
 
   @@map("informacoes_nutricionais")
@@ -176,21 +168,17 @@ model Notificacao {
 
 model RegistroInspecao {
   id              String      @id @default(uuid())
-
   cardapioDiaId   String      @unique
   cardapioDia     CardapioDia @relation(fields: [cardapioDiaId], references: [id], onDelete: Cascade)
-
-  inspetoraId     String
-  inspetora       Usuario     @relation(fields: [inspetoraId], references: [id])
-
+  escolaId        String
+  escola          Escola      @relation(fields: [escolaId], references: [id], onDelete: Cascade)
+  inspetoraId     String?
+  inspetora       Usuario?    @relation(fields: [inspetoraId], references: [id])
   data            DateTime    @db.Date
-  
-  alunosPresentes Int
+  alunosPresentes Int         @default(0)
   pratosServidos  Int
-
   comidaFeitaKg   Float
   sobraKg         Float
-
   observacoes     String?
   criadoEm        DateTime    @default(now())
 
@@ -198,128 +186,97 @@ model RegistroInspecao {
 }
 
 model Estoque {
-  id        String  @id @default(uuid())
-
-  escolaId  String  @unique
-  escola    Escola  @relation(fields: [escolaId], references: [id], onDelete: Cascade)
-
-  itens     ItemEstoque[]
-
-  criadoEm  DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
-
+  id            String                @id @default(uuid())
+  escolaId      String                @unique
+  escola        Escola                @relation(fields: [escolaId], references: [id], onDelete: Cascade)
+  itens         ItemEstoque[]
+  criadoEm      DateTime              @default(now())
+  atualizadoEm  DateTime              @updatedAt
   movimentacoes MovimentacaoEstoque[]
 
   @@map("estoques")
 }
 
 model Produto {
-  id     String @id @default(uuid())
-
-  nome   String
-  marca  String?
-
-  itens  ItemEstoque[]
+  id    String        @id @default(uuid())
+  nome  String
+  marca String?
+  itens ItemEstoque[]
 
   @@map("produtos")
 }
 
 model ItemEstoque {
-  id          String @id @default(uuid())
-
-  estoqueId   String
-  estoque     Estoque @relation(fields: [estoqueId], references: [id], onDelete: Cascade)
-
-  produtoId   String
-  produto     Produto @relation(fields: [produtoId], references: [id])
-
-  lote        String
-  validade    DateTime
-
-  quantidade  Float
-  unidade     String @default("kg")
-
-  criadoEm    DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
-
+  id            String                @id @default(uuid())
+  estoqueId     String
+  estoque       Estoque               @relation(fields: [estoqueId], references: [id], onDelete: Cascade)
+  produtoId     String
+  produto       Produto               @relation(fields: [produtoId], references: [id])
+  lote          String
+  validade      DateTime
+  quantidade    Float
+  unidade       String                @default("kg")
+  criadoEm      DateTime              @default(now())
+  atualizadoEm  DateTime              @updatedAt
   movimentacoes MovimentacaoEstoque[]
 
   @@map("itens_estoque")
 }
 
 model MovimentacaoEstoque {
-  id         String @id @default(uuid())
-
+  id         String           @id @default(uuid())
   estoqueId  String
-  estoque    Estoque @relation(fields: [estoqueId], references: [id], onDelete: Cascade)
-
+  estoque    Estoque          @relation(fields: [estoqueId], references: [id], onDelete: Cascade)
   itemId     String
-  item       ItemEstoque @relation(fields: [itemId], references: [id], onDelete: Cascade)
-
+  item       ItemEstoque      @relation(fields: [itemId], references: [id], onDelete: Cascade)
   tipo       TipoMovimentacao
   quantidade Float
   motivo     String?
-
-  criadoEm   DateTime @default(now())
+  criadoEm   DateTime         @default(now())
 
   @@map("movimentacoes_estoque")
 }
 
 model SolicitacaoEstoque {
-  id String @id @default(uuid())
-
-  escolaId String
-  escola   Escola @relation(fields: [escolaId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(uuid())
+  escolaId  String
+  escola    Escola   @relation(fields: [escolaId], references: [id], onDelete: Cascade)
   descricao String
-
-  criadoEm DateTime @default(now())
+  criadoEm  DateTime @default(now())
 
   @@map("solicitacoes_estoque")
 }
 
 model Contagem {
-  id String @id @default(uuid())
-
-  data DateTime @db.Date
-
+  id          String   @id @default(uuid())
+  data        DateTime @db.Date
   totalAlunos Int?
-
-  escolaId String
-  escola   Escola @relation(fields: [escolaId], references: [id], onDelete: Cascade)
-
-  salas Sala[]
-
-  criadoEm DateTime @default(now())
+  escolaId    String
+  escola      Escola   @relation(fields: [escolaId], references: [id], onDelete: Cascade)
+  salas       Sala[]
+  criadoEm    DateTime @default(now())
 
   @@map("contagens")
 }
 
 model Sala {
-  id String @id @default(uuid())
-
-  contagemId String
-  contagem   Contagem @relation(fields: [contagemId], references: [id], onDelete: Cascade)
-
-  nome String
-
-  alunosComer     Int @default(0)
-  alunosRestricao Int @default(0)
-
-  restricoes Restricao[]
+  id              String      @id @default(uuid())
+  contagemId      String
+  contagem        Contagem    @relation(fields: [contagemId], references: [id], onDelete: Cascade)
+  nome            String
+  alunosComer     Int         @default(0)
+  alunosRestricao Int         @default(0)
+  restricoes      Restricao[]
 
   @@map("salas")
 }
 
 model Restricao {
-  id String @id @default(uuid())
-
-  salaId String
-  sala   Sala   @relation(fields: [salaId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(uuid())
+  salaId    String
+  sala      Sala     @relation(fields: [salaId], references: [id], onDelete: Cascade)
   descricao String
-
-  criadoEm DateTime @default(now())
+  criadoEm  DateTime @default(now())
 
   @@map("restricoes")
 }

@@ -425,25 +425,6 @@ export default function SelecaoEscola() {
             <p>{usuario ? usuario.nome : "Nome do responsável"}</p>
           </div>
         </div>
-
-        <div className="cabecalho-acoes">
-          <button onClick={() => { setAbaAtiva('escolas'); }} className={`btn-topo-nav ${abaAtiva === 'escolas' ? 'ativo' : ''}`}>
-            <GraduationCap size={26} />
-            {abaAtiva === 'escolas' && <span className="traco-ativo"></span>}
-          </button>
-
-          <button onClick={() => { setAbaAtiva('calendario'); }} className={`btn-topo-nav ${abaAtiva === 'calendario' ? 'ativo' : ''}`}>
-            <div className="wrapper-cal">
-              <Calendar size={24} />
-            </div>
-            {abaAtiva === 'calendario' && <span className="traco-ativo"></span>}
-          </button>
-
-          <button onClick={handleLogout} className={`btn-topo-nav ${abaAtiva === 'escolas' ? 'ativo' : ''}`}>
-            {abaAtiva === 'sair' && <span className="indicador-ativo"></span>}
-            <LogOut size={24} />
-          </button>
-        </div>
       </header>
 
       {/* =========================================================================
