@@ -25,6 +25,7 @@ import contagemRouter from "./routes/contagem/contagem.js"
 import salaRouter from "./routes/contagem/sala.js"
 import restricaoRouter from "./routes/contagem/restricao.js"
 
+import notificacoesRouter from "./routes/notificacoes.js";
 import authRouter from "./routes/auth.js";
 
 
@@ -34,7 +35,7 @@ export const app = express()
 
 app.use(cors())
 app.use(express.json())
-
+app.use("/notificacoes", notificacoesRouter);
 dotenv.config()
 
 const PORT = process.env.DB_PORT

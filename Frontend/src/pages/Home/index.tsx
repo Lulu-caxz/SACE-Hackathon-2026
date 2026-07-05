@@ -1,6 +1,6 @@
 import "./index.css";
 import ArrowIcon from "../../assets/icons/arrow.svg";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Cardapio from "./components/cardapio";
 
 export default function Home() {
@@ -10,57 +10,76 @@ export default function Home() {
     const [cpf, setCpf] = useState("");
     const [password, setPassword] = useState("");
 
+    // Estado para guardar o cardápio oficial aprovado
+    const [cardapioOficial, setCardapioOficial] = useState<any>(null);
+    const [carregandoCardapio, setCarregandoCardapio] = useState<boolean>(true);
+
     const options = [
-        {
-            value: "secretaria",
-            label: "Secretaria",
-        },
-        {
-            value: "inspetor",
-            label: "Inspetor(a)",
-        },
-        {
-            value: "nutricionista",
-            label: "Nutricionista",
-        },
+        { value: "secretaria", label: "Secretaria" },
+        { value: "inspetor", label: "Inspetor(a)" },
+        { value: "nutricionista", label: "Nutricionista" },
     ];
 
-    function selectOption(option) {
+    useEffect(() => {
+        buscarCardapioOficial();
+    }, []);
+
+    async function buscarCardapioOficial() {
+        try {
+            setCarregandoCardapio(true);
+            const resposta = await fetch("http://localhost:3001/cardapios/oficial/atual");
+            if (resposta.ok) {
+                const data = await resposta.json();
+                console.log("🔥 Cardápio Oficial Aprovado carregado no Login:", data);
+                setCardapioOficial(data);
+            } else {
+                console.warn("Nenhum cardápio aprovado disponível no momento.");
+            }
+        } catch (error) {
+            console.error("Erro ao buscar cardápio oficial:", error);
+        } finally {
+            setCarregandoCardapio(false);
+        }
+    }
+
+    function selectOption(option: any) {
         setTypeLogin(option.value);
         setIsOpen(false);
     }
 
     async function login() {
-        const resposta = await fetch("http://localhost:3001/auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                cpf,
-                password,
-                role: typeLogin,
-            })
-        })
+        try {
+            const resposta = await fetch("http://localhost:3001/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    cpf,
+                    password,
+                    role: typeLogin,
+                })
+            });
 
-        const data = await resposta.json()
+            const data = await resposta.json();
 
-        if (resposta.ok && data.usuario) {
-            localStorage.setItem("token", data.token)
-            console.log(data)
-            if (data.usuario.role == "SECRETARIA") {
-                window.location.href = "/secretaria"
+            if (resposta.ok && data.usuario) {
+                localStorage.setItem("token", data.token);
+                console.log("Login bem-sucedido:", data);
+                
+                if (data.usuario.role === "SECRETARIA") {
+                    window.location.href = "/secretaria";
+                } else if (data.usuario.role === "INSPETOR") {
+                    window.location.href = "/inspetor";
+                } else if (data.usuario.role === "NUTRICIONISTA") {
+                    window.location.href = "/nutricionista";
+                }
+            } else {
+                alert(data.message || "Erro ao realizar login. Verifique seus dados.");
             }
-            if (data.usuario.role == "INSPETOR") {
-                window.location.href = "/inspetor"
-            }
-            if (data.usuario.role == "NUTRICIONISTA") {
-                window.location.href = "/nutricionista"
-            }
-            
-
-        } else {
-            console.log(data.message , "erro")
+        } catch (error) {
+            console.error("Erro na requisição de login:", error);
+            alert("Erro de conexão com o servidor.");
         }
     }
 
@@ -71,29 +90,24 @@ export default function Home() {
                     <div className="text-bold">
                         Seja bem-vindo à SACE
                     </div>
-
                     <div className="text-notbold">
                         Preencha os dados abaixo para acessar.
                     </div>
                 </div>
 
                 <div className="title-mid">
-
                     <div className="text-bold">
                         QUEM ESTÁ ENTRANDO
                     </div>
 
                     <div className="select">
-
                         <div
                             className="input"
                             onClick={() => setIsOpen(!isOpen)}
                         >
                             <span className="text-notbold">
                                 {typeLogin
-                                    ? options.find(
-                                        (o) => o.value === typeLogin
-                                    ).label
+                                    ? options.find((o) => o.value === typeLogin)?.label
                                     : "Escolher"}
                             </span>
 
@@ -110,9 +124,7 @@ export default function Home() {
                                     <div
                                         key={option.value}
                                         className="option"
-                                        onClick={() =>
-                                            selectOption(option)
-                                        }
+                                        onClick={() => selectOption(option)}
                                     >
                                         {option.label}
                                     </div>
@@ -169,6 +181,8 @@ export default function Home() {
                         titulo="CARDÁPIO CEI"
                         subtitulo="CRIANÇAS DE 6 A 12 MESES"
                         cor="#024B7E"
+                        dados={cardapioOficial}
+                        carregando={carregandoCardapio}
                     />
                 </div>
                 <div className="card">
@@ -176,6 +190,8 @@ export default function Home() {
                         titulo="CARDÁPIO CEI/EMEI"
                         subtitulo="CRIANÇAS DE 1 A 5 ANOS"
                         cor="#4C77B8"
+                        dados={cardapioOficial}
+                        carregando={carregandoCardapio}
                     />
                 </div>
             </div>
