@@ -21,6 +21,10 @@ import produtoRouter from "./routes/estoque/produto.js";
 
 import estoqueControllerRouter from "./controllers/estoque.controller.js"
 
+import contagemRouter from "./routes/contagem/contagem.js"
+import salaRouter from "./routes/contagem/sala.js"
+import restricaoRouter from "./routes/contagem/restricao.js"
+
 import authRouter from "./routes/auth.js";
 
 
@@ -55,6 +59,10 @@ app.use("/itemEstoque", itemEstoqueRouter)
 app.use("/produto", produtoRouter)
 
 app.use("/estoqueController", estoqueControllerRouter)
+
+app.use("/contagem", contagemRouter)
+app.use("/sala", salaRouter)
+app.use("/restricao", restricaoRouter   )
 
 app.use("/auth", authRouter)
 

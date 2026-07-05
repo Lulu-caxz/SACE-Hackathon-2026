@@ -274,7 +274,7 @@ model Contagem {
 
   data DateTime @db.Date
 
-  totalAlunos Int
+  totalAlunos Int?
 
   escolaId String
   escola   Escola @relation(fields: [escolaId], references: [id], onDelete: Cascade)

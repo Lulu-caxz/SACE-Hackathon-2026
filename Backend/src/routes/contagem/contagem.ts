@@ -3,104 +3,96 @@ import { Router } from "express";
 
 const router = Router();
 
-// buscar todos
+// LISTAR
 router.get("/", async (req, res) => {
     try {
-        const dias = await prisma.cardapioDia.findMany({
+        const contagens = await prisma.contagem.findMany({
             include: {
-                cardapio: true,
-                refeicoes: true,
-                registro: true, // <-- CORRIGIDO AQUI!
+                salas: true,
             },
         });
 
-        res.json(dias);
+        res.json(contagens);
     } catch (error) {
         res.status(500).json(error);
     }
 });
 
-// buscar por id
+// POR ESCOLA (CORRIGIDO)
 router.get("/:id", async (req, res) => {
     try {
         const { id } = req.params;
 
-        const dia = await prisma.cardapioDia.findUnique({
-            where: {
-                id,
-            },
-            include: {
-                cardapio: true,
-                refeicoes: true,
-                registro: true, // <-- CORRIGIDO AQUI!
-            },
+        const contagens = await prisma.contagem.findMany({
+            where: { escolaId: id },
+            include: { salas: true }
         });
 
-        res.json(dia);
+        const alunosContados = contagens.reduce((acc, c) => {
+            const porContagem = c.salas.reduce((sum, s) => {
+                return sum + (s.alunosComer ?? 0) + (s.alunosRestricao ?? 0);
+            }, 0);
+
+            return acc + porContagem;
+        }, 0);
+
+        return res.json({
+            alunosContados,
+            contagens
+        });
+
     } catch (error) {
-        res.status(500).json(error);
+        return res.status(500).json(error);
     }
 });
 
-// criar
+// CRIAR
 router.post("/criar", async (req, res) => {
     try {
-        const {
-            cardapioId,
-            dia,
-        } = req.body;
+        const { data, escolaId } = req.body;
 
-        const cardapioDia = await prisma.cardapioDia.create({
+        const contagem = await prisma.contagem.create({
             data: {
-                cardapioId,
-                dia,
+                data: new Date(data),
+                escolaId,
             },
         });
 
-        res.status(201).json(cardapioDia);
+        res.status(201).json(contagem);
     } catch (error) {
         res.status(400).json(error);
     }
 });
 
-// atualizar
+// ATUALIZAR (remove totalAlunos porque não faz sentido no teu modelo atual)
 router.put("/atualizar/:id", async (req, res) => {
     try {
         const { id } = req.params;
+        const { data } = req.body;
 
-        const {
-            cardapioId,
-            dia,
-        } = req.body;
-
-        const cardapioDia = await prisma.cardapioDia.update({
-            where: {
-                id,
-            },
+        const contagem = await prisma.contagem.update({
+            where: { id },
             data: {
-                cardapioId,
-                dia,
+                ...(data && { data: new Date(data) }),
             },
         });
 
-        res.json(cardapioDia);
+        res.json(contagem);
     } catch (error) {
         res.status(400).json(error);
     }
 });
 
-// deletar
+// DELETE
 router.delete("/deletar/:id", async (req, res) => {
     try {
         const { id } = req.params;
 
-        const cardapioDia = await prisma.cardapioDia.delete({
-            where: {
-                id,
-            },
+        const contagem = await prisma.contagem.delete({
+            where: { id },
         });
 
-        res.json(cardapioDia);
+        res.json(contagem);
     } catch (error) {
         res.status(400).json(error);
     }

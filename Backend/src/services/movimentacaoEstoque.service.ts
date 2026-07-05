@@ -1,6 +1,19 @@
 import { prisma } from "../lib/prisma.js";
 import { TipoMovimentacao } from "../generated/prisma/client.js";
 
+//GARANTE QUE A ESCOLA TEM UM ESTOQUE (CRIA SE NÃO EXISTIR)
+export async function getOrCreateEstoque(escolaId: string) {
+    let estoque = await prisma.estoque.findUnique({ where: { escolaId } });
+
+    if (!estoque) {
+        estoque = await prisma.estoque.create({
+            data: { escolaId }
+        });
+    }
+
+    return estoque;
+}
+
 //ENTRADA DE PRODUTOS NO ESTOQUE
 export async function entradaEstoque({
     estoqueId,
@@ -149,6 +162,10 @@ export async function ajusteEstoque({
 
     if (!item) {
         throw new Error("item não encontrado")
+    }
+
+    if (item.estoqueId !== estoqueId) {
+        throw new Error("Item não pertence a este estoque")
     }
 
     const diferenca = novaQuantidade - item.quantidade

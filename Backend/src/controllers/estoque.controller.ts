@@ -2,8 +2,10 @@ import { Router } from "express";
 import {
     entradaEstoque,
     saidaEstoque,
-    ajusteEstoque
+    ajusteEstoque,
+    getOrCreateEstoque
 } from "../services/movimentacaoEstoque.service.js";
+import { prisma } from "../lib/prisma.js";
 
 const router = Router();
 
@@ -11,7 +13,8 @@ const router = Router();
 router.post("/entrada", async (req, res) => {
     try {
         const {
-            estoqueId,
+            estoqueId: estoqueIdBody,
+            escolaId,
             produtoId,
             lote,
             validade,
@@ -20,9 +23,15 @@ router.post("/entrada", async (req, res) => {
             motivo
         } = req.body;
 
-        if (!estoqueId || !produtoId || !lote || !validade || quantidade == null) {
+        if (!escolaId && !estoqueIdBody) {
+            return res.status(400).json({ error: "Informe escolaId ou estoqueId" });
+        }
+
+        if (!produtoId || !lote || !validade || quantidade == null) {
             return res.status(400).json({ error: "Campos obrigatórios faltando" });
         }
+
+        const estoqueId = estoqueIdBody ?? (await getOrCreateEstoque(escolaId)).id;
 
         const result = await entradaEstoque({
             estoqueId,
@@ -37,6 +46,7 @@ router.post("/entrada", async (req, res) => {
         return res.json(result);
 
     } catch (error) {
+        console.error("Erro na entrada de estoque:", error);
         return res.status(500).json({ error: "Erro na entrada de estoque" });
     }
 });
@@ -65,6 +75,7 @@ router.post("/saida", async (req, res) => {
         return res.json({ message: "Saída registrada com sucesso" });
 
     } catch (error: any) {
+        console.error("Erro na saída de estoque:", error);
         return res.status(400).json({
             error: error?.message ?? "Erro na saída de estoque"
         });
@@ -72,7 +83,7 @@ router.post("/saida", async (req, res) => {
 });
 
 //ajuste
-router.post("/ajuste", async (req, res) => {
+router.put("/ajuste", async (req, res) => {
     try {
         const {
             estoqueId,
@@ -85,6 +96,14 @@ router.post("/ajuste", async (req, res) => {
             return res.status(400).json({ error: "Campos obrigatórios faltando" });
         }
 
+        const item = await prisma.itemEstoque.findUnique({ where: { id: itemId } });
+        if (!item) {
+            return res.status(404).json({ error: "Item não encontrado" });
+        }
+        if (item.estoqueId !== estoqueId) {
+            return res.status(400).json({ error: "Item não pertence a este estoque" });
+        }
+
         const result = await ajusteEstoque({
             estoqueId,
             itemId,
@@ -95,6 +114,7 @@ router.post("/ajuste", async (req, res) => {
         return res.json(result);
 
     } catch (error: any) {
+        console.error("Erro no ajuste de estoque:", error);
         return res.status(400).json({
             error: error.message ?? "Erro no ajuste de estoque"
         });

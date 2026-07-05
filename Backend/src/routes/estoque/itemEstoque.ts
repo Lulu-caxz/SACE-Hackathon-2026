@@ -3,7 +3,9 @@ import { prisma } from "../../lib/prisma.js";
 
 const router = Router();
 
-// LISTAR ITENS
+/* =========================================================
+   LISTAR ITENS (CRUD NORMAL)
+========================================================= */
 router.get("/", async (req, res) => {
     try {
         const itens = await prisma.itemEstoque.findMany({
@@ -19,7 +21,9 @@ router.get("/", async (req, res) => {
     }
 });
 
-// BUSCAR POR ID
+/* =========================================================
+   BUSCAR POR ID
+========================================================= */
 router.get("/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -38,7 +42,9 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-// CRIAR ITEM NO ESTOQUE
+/* =========================================================
+   CRIAR ITEM
+========================================================= */
 router.post("/criar", async (req, res) => {
     try {
         const {
@@ -59,7 +65,7 @@ router.post("/criar", async (req, res) => {
                 estoqueId,
                 produtoId,
                 lote,
-                validade: validade ? new Date(validade) : null,
+                validade,
                 quantidade,
                 unidade: unidade || "kg",
             },
@@ -71,17 +77,14 @@ router.post("/criar", async (req, res) => {
     }
 });
 
-// ATUALIZAR ITEM
+/* =========================================================
+   ATUALIZAR ITEM
+========================================================= */
 router.put("/atualizar/:id", async (req, res) => {
     try {
         const { id } = req.params;
 
-        const {
-            lote,
-            validade,
-            quantidade,
-            unidade
-        } = req.body;
+        const { lote, validade, quantidade, unidade } = req.body;
 
         const data: any = {};
 
@@ -101,7 +104,9 @@ router.put("/atualizar/:id", async (req, res) => {
     }
 });
 
-// DELETAR ITEM
+/* =========================================================
+   DELETAR ITEM
+========================================================= */
 router.delete("/deletar/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -111,6 +116,61 @@ router.delete("/deletar/:id", async (req, res) => {
         });
 
         res.json(item);
+    } catch (error) {
+        res.status(500).json(error);
+    }
+});
+
+/* =========================================================
+   ESTOQUE AGRUPADO (PRODUTO → LOTES)
+   USADO NO DASHBOARD
+========================================================= */
+router.get("/agrupado/escola/:escolaId", async (req, res) => {
+    try {
+        const { escolaId } = req.params;
+
+        const itens = await prisma.itemEstoque.findMany({
+            where: {
+                estoque: {
+                    escolaId
+                }
+            },
+            include: {
+                produto: true
+            }
+        });
+
+        const agrupado = Object.values(
+            itens.reduce((acc: any, item) => {
+                const produtoId = item.produtoId;
+
+                if (!acc[produtoId]) {
+                    acc[produtoId] = {
+                        produto: {
+                            id: item.produtoId,
+                            nome: item.produto.nome
+                        },
+                        total: 0,
+                        lotes: []
+                    };
+                }
+
+                acc[produtoId].total += item.quantidade;
+
+                acc[produtoId].lotes.push({
+                    id: item.id,
+                    estoqueId: item.estoqueId, // necessário para o front chamar /estoqueController/ajuste
+                    lote: item.lote,
+                    validade: item.validade,
+                    quantidade: item.quantidade,
+                    unidade: item.unidade
+                });
+
+                return acc;
+            }, {})
+        );
+
+        res.json(agrupado);
     } catch (error) {
         res.status(500).json(error);
     }

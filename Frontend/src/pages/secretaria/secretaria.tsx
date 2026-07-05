@@ -30,23 +30,26 @@ interface Cardapio {
   dias?: any[];
 }
 
-interface Referencia { 
-  id: string; 
-  faixaEtaria: string; 
-  dieta: string; 
-  kcalAlvo: number; 
-  choMin: number; 
-  choMax: number; 
-  ptnMin: number; 
-  ptnMax: number; 
-  lipMin: number; 
-  lipMax: number; 
-  sodioMaxMg: number; 
+interface Referencia {
+  id: string;
+  faixaEtaria: string;
+  dieta: string;
+  kcalAlvo: number;
+  choMin: number;
+  choMax: number;
+  ptnMin: number;
+  ptnMax: number;
+  lipMin: number;
+  lipMax: number;
+  sodioMaxMg: number;
 }
 
 export default function SelecaoEscola() {
   const [abaAtiva, setAbaAtiva] = useState<'escolas' | 'calendario' | 'sair'>('escolas');
   const [usuario, setUsuario] = useState<any>(null);
+
+
+  const [produtoAberto, setProdutoAberto] = useState<string | null>(null);
 
   // Estados Escolas
   const [escolas, setEscolas] = useState<Escola[]>([]);
@@ -83,10 +86,24 @@ export default function SelecaoEscola() {
   // Toggle Interno Cardápio vs Valor Nutri
   const [subAbaDetalhe, setSubAbaDetalhe] = useState<'cardapio' | 'nutricional'>('cardapio');
 
-  // Modais de Ação
+  // Modais de Ação (Cardápio)
   const [modalReprovarAberto, setModalReprovarAberto] = useState(false);
   const [textoMotivo, setTextoMotivo] = useState('');
   const [atualizandoStatus, setAtualizandoStatus] = useState(false);
+
+  // ================== ESTOQUE — Nova Entrada de Lote ==================
+  const [modalEntradaAberto, setModalEntradaAberto] = useState(false);
+  const [listaProdutos, setListaProdutos] = useState<any[]>([]);
+  const [formEntrada, setFormEntrada] = useState({
+    produtoId: '', lote: '', quantidade: '', unidade: 'kg', validade: ''
+  });
+
+  // ================== ESTOQUE — Ajuste de Lote (delta) ==================
+  const [modalAjusteLoteAberto, setModalAjusteLoteAberto] = useState(false);
+  const [itemParaAjuste, setItemParaAjuste] = useState<any>(null);
+  const [deltaAjuste, setDeltaAjuste] = useState('');
+  const [motivoAjusteLote, setMotivoAjusteLote] = useState('');
+  const [salvandoEstoque, setSalvandoEstoque] = useState(false);
 
   // Carregar Escolas
   useEffect(() => {
@@ -107,23 +124,24 @@ export default function SelecaoEscola() {
   }, []);
 
   // CARREGAR DADOS REAIS DO BANCO QUANDO A ESCOLA É SELECIONADA
-  useEffect(() => {
+  const carregarDashboardEscola = async () => {
     if (!escolaSelecionada) return;
-    async function puxarDashboardReal() {
-      try {
-        setCarregandoDashboard(true);
-        const res = await fetch(`${API_URL}/escolas/${escolaSelecionada?.id}/dashboard`);
-        if (res.ok) {
-          const dados = await res.json();
-          setDashboardEscola(dados);
-        }
-      } catch (err) {
-        console.error("Erro ao puxar dashboard real da escola:", err);
-      } finally {
-        setCarregandoDashboard(false);
+    try {
+      setCarregandoDashboard(true);
+      const res = await fetch(`${API_URL}/escolas/${escolaSelecionada.id}/dashboard`);
+      if (res.ok) {
+        const dados = await res.json();
+        setDashboardEscola(dados);
       }
+    } catch (err) {
+      console.error("Erro ao puxar dashboard real da escola:", err);
+    } finally {
+      setCarregandoDashboard(false);
     }
-    puxarDashboardReal();
+  };
+
+  useEffect(() => {
+    carregarDashboardEscola();
   }, [escolaSelecionada]);
 
   // Carregar Usuário Autenticado
@@ -167,7 +185,7 @@ export default function SelecaoEscola() {
 
   const handleAprovar = async () => {
     if (!cardapioSelecionado) return;
-    
+
     try {
       setAtualizandoStatus(true);
       const res = await fetch(`${API_URL}/cardapios/atualizar/${cardapioSelecionado.id}`, {
@@ -185,11 +203,11 @@ export default function SelecaoEscola() {
         console.error("Erro retornado pelo servidor ao aprovar:", erroMsg);
         alert("Não foi possível aprovar o cardápio no banco de dados. Verifique o terminal do Back-end!");
       }
-    } catch (err) { 
-      console.error("Erro de conexão ao aprovar:", err); 
+    } catch (err) {
+      console.error("Erro de conexão ao aprovar:", err);
       alert("Erro ao conectar com o servidor para aprovar o cardápio.");
-    } finally { 
-      setAtualizandoStatus(false); 
+    } finally {
+      setAtualizandoStatus(false);
     }
   };
 
@@ -219,15 +237,143 @@ export default function SelecaoEscola() {
         console.error("Erro retornado pelo servidor ao reprovar:", erroMsg);
         alert("Não foi possível reprovar o cardápio no banco de dados.");
       }
-    } catch (err) { 
-      console.error("Erro de conexão ao reprovar:", err); 
-    } finally { 
-      setAtualizandoStatus(false); 
+    } catch (err) {
+      console.error("Erro de conexão ao reprovar:", err);
+    } finally {
+      setAtualizandoStatus(false);
     }
   };
 
+  // ================== ESTOQUE — Handlers ==================
+
+  const abrirModalEntrada = async (produtoIdPreSelecionado?: string) => {
+    if (listaProdutos.length === 0) {
+      try {
+        const res = await fetch(`${API_URL}/produto`);
+        if (res.ok) setListaProdutos(await res.json());
+      } catch (err) {
+        console.error("Erro ao carregar produtos:", err);
+      }
+    }
+    setFormEntrada({
+      produtoId: produtoIdPreSelecionado ?? '',
+      lote: '',
+      quantidade: '',
+      unidade: 'kg',
+      validade: ''
+    });
+    setModalEntradaAberto(true);
+  };
+
+  const handleSalvarEntrada = async () => {
+    const { produtoId, lote, quantidade, unidade, validade } = formEntrada;
+
+    if (!produtoId || !lote || !quantidade || !validade) {
+      alert("Preencha produto, lote, quantidade e validade.");
+      return;
+    }
+
+    try {
+      setSalvandoEstoque(true);
+      const res = await fetch(`${API_URL}/estoqueController/entrada`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          escolaId: escolaSelecionada?.id,
+          produtoId,
+          lote,
+          quantidade: Number(quantidade),
+          unidade,
+          validade
+        })
+      });
+
+      if (res.ok) {
+        setModalEntradaAberto(false);
+        await carregarDashboardEscola();
+      } else {
+        const erroMsg = await res.text();
+        console.error("Erro ao registrar entrada de estoque:", erroMsg);
+        alert("Não foi possível registrar a entrada de estoque.");
+      }
+    } catch (err) {
+      console.error("Erro de conexão ao registrar entrada:", err);
+      alert("Erro ao conectar com o servidor para registrar a entrada.");
+    } finally {
+      setSalvandoEstoque(false);
+    }
+  };
+
+  const abrirModalAjusteLote = (item: any) => {
+    setItemParaAjuste(item);
+    setDeltaAjuste('');
+    setMotivoAjusteLote('');
+    setModalAjusteLoteAberto(true);
+  };
+
+  const handleSalvarAjusteLote = async () => {
+    if (!itemParaAjuste || !deltaAjuste.trim()) {
+      alert("Informe a quantidade a retirar (ex: -5) ou adicionar (ex: 10).");
+      return;
+    }
+
+    const delta = Number(deltaAjuste);
+    if (Number.isNaN(delta) || delta === 0) {
+      alert("Informe um número válido, diferente de zero.");
+      return;
+    }
+
+    const novaQuantidade = (itemParaAjuste.quantidade ?? 0) + delta;
+
+    if (novaQuantidade < 0) {
+      alert("Essa retirada deixaria o lote com quantidade negativa.");
+      return;
+    }
+
+    try {
+      setSalvandoEstoque(true);
+      const res = await fetch(`${API_URL}/estoqueController/ajuste`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          estoqueId: itemParaAjuste.estoqueId,
+          itemId: itemParaAjuste.id,
+          novaQuantidade,
+          motivo: motivoAjusteLote.trim() || (delta > 0 ? "Adição manual" : "Retirada manual")
+        })
+      });
+
+      if (res.ok) {
+        setModalAjusteLoteAberto(false);
+        await carregarDashboardEscola();
+      } else {
+        const erroMsg = await res.text();
+        console.error("Erro ao ajustar lote:", erroMsg);
+        alert("Não foi possível ajustar o lote.");
+      }
+    } catch (err) {
+      console.error("Erro de conexão ao ajustar lote:", err);
+      alert("Erro ao conectar com o servidor para ajustar o lote.");
+    } finally {
+      setSalvandoEstoque(false);
+    }
+  };
+
+  // Produtos já usados por esta escola (vem do dashboard já carregado, sem fetch extra)
+  const produtosDaEscolaUnicos = Array.from(
+    new Map(
+      (Array.isArray(dashboardEscola?.itensEstoque) ? dashboardEscola.itensEstoque : [])
+        .map((item: any) => item?.produto)
+        .filter((p: any) => p?.id)
+        .map((p: any) => [p.id, p])
+    ).values()
+  );
+
+  const idsProdutosDaEscola = new Set(produtosDaEscolaUnicos.map((p: any) => p.id));
+  const outrosProdutosCatalogo = listaProdutos.filter((p: any) => !idsProdutosDaEscola.has(p.id));
+
   const escolasFiltradas = escolas.filter((escola) => (escola.nome || escola.name || '').toLowerCase().includes(busca.toLowerCase()));
-  
+
   const getClasseStatus = (status: string = '') => {
     switch (status) {
       case 'Esperando': return 'card-esperando';
@@ -238,7 +384,7 @@ export default function SelecaoEscola() {
 
   return (
     <div className={`app-container ${abaAtiva !== 'sair' ? 'modo-desktop-expandido' : ''}`}>
-      
+
       {/* CABEÇALHO */}
       <header className="cabecalho">
         <div className="cabecalho-esquerda">
@@ -273,7 +419,7 @@ export default function SelecaoEscola() {
       ========================================================================= */}
       {abaAtiva === 'escolas' && (
         <div className="layout-split-desktop">
-          
+
           <aside className={`coluna-lista-escolas ${escolaSelecionada ? 'esconder-no-mobile' : ''}`}>
             <div className="barra-busca-container">
               <div className="input-busca-wrapper">
@@ -328,104 +474,228 @@ export default function SelecaoEscola() {
                   <div className="badge-sace so-no-mobile">INDICE SACE - {escolaSelecionada.indiceSace || 'Sem nota'}/100</div>
 
                   <div className="grid-tres-colunas-escola">
-                    
-                    {/* SUB-COLUNA 1: Estatísticas do Banco de Dados */}
-                    <div className="sub-coluna-escola">
-                      <div className="data-seletor-bar"><span>RESUMO GERAL DO BANCO</span><Calendar size={18} /></div>
 
-                      <div className="stats-diario-grid">
-                        <div className="stat-box"><span className="stat-label">Alunos Contados</span><span className="stat-num font-extrabold text-blue-900">{dashboardEscola.totais.alunosContados}</span></div>
-                        <div className="stat-box"><span className="stat-label">Pratos Servidos</span><span className="stat-num font-extrabold text-blue-900">{dashboardEscola.totais.pratosServidos}</span></div>
-                        <div className="stat-box"><span className="stat-label">Desperdício (Kg)</span><span className="stat-num font-extrabold text-red-600">{dashboardEscola.totais.desperdicioKg}kg</span></div>
+                    {/* SUB-COLUNA 1 */}
+                    <div className="sub-coluna-escola">
+                      <div className="data-seletor-bar">
+                        <span>RESUMO GERAL DO BANCO</span>
+                        <Calendar size={18} />
                       </div>
 
-                      <div className="secao-grafico">
-                        <h3 className="subtitulo-secao">GRÁFICO DE DESPERDÍCIO GRAVADO</h3>
-                        <div className="grafico-barras">
-                          {dashboardEscola.graficoDesperdicio.map((item, idx) => (
-                            <div key={idx} className="linha-grafico"><span className="label-dia">{item.dia}</span><div className="barra-fundo"><div className="barra-preenchida" style={{ width: `${Math.max(10, item.valor)}%` }}><span className="barra-texto">{item.label}</span></div></div></div>
-                          ))}
+                      <div className="stats-diario-grid">
+                        <div className="stat-box">
+                          <span className="stat-label">Alunos Contados</span>
+                          <span className="stat-num">{dashboardEscola?.totais?.alunosContados ?? 0}</span>
+                        </div>
+
+                        <div className="stat-box">
+                          <span className="stat-label">Pratos Servidos</span>
+                          <span className="stat-num">{dashboardEscola?.totais?.pratosServidos ?? 0}</span>
+                        </div>
+
+                        <div className="stat-box">
+                          <span className="stat-label">Desperdício (Kg)</span>
+                          <span className="stat-num">{dashboardEscola?.totais?.desperdicioKg ?? 0}kg</span>
                         </div>
                       </div>
 
+                      {/* GRÁFICO DESPERDÍCIO (REAL DO BANCO) */}
+                      <div className="secao-grafico">
+                        <h3 className="subtitulo-secao">GRÁFICO DE DESPERDÍCIO GRAVADO</h3>
+
+                        <div className="grafico-barras">
+                          {(dashboardEscola?.graficoDesperdicio ?? []).map((item: any, idx: number) => {
+                            const max = Math.max(
+                              1,
+                              ...(dashboardEscola?.graficoDesperdicio ?? []).map((i: any) => i.valor || 0)
+                            );
+
+                            const porcentagem = ((item.valor || 0) / max) * 100;
+
+                            return (
+                              <div key={idx} className="linha-grafico">
+                                <span className="label-dia">{item.dia}</span>
+
+                                <div className="barra-fundo">
+                                  <div
+                                    className="barra-preenchida"
+                                    style={{ width: `${porcentagem}%` }}
+                                  >
+                                    <span className="barra-texto">
+                                      {item.valor ?? 0}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* GRÁFICO ALUNOS (REAL DO BANCO) */}
                       <div className="secao-grafico">
                         <h3 className="subtitulo-secao">GRÁFICO DE ALUNOS CONTADOS</h3>
+
                         <div className="grafico-barras">
-                          {dashboardEscola.graficoAlunos.map((item, idx) => {
-                            const porc = item.max > 0 ? (item.valor / item.max) * 100 : 0;
+                          {(dashboardEscola?.graficoAlunos ?? []).map((item: any, idx: number) => {
+                            const max = Math.max(
+                              1,
+                              ...(dashboardEscola?.graficoAlunos ?? []).map((i: any) => i.valor || 0)
+                            );
+
+                            const porcentagem = ((item.valor || 0) / max) * 100;
+
                             return (
-                              <div key={idx} className="linha-grafico"><span className="label-dia">{item.dia}</span><div className="barra-fundo"><div className="barra-preenchida" style={{ width: `${Math.max(10, porc)}%` }}><span className="barra-texto">{item.valor}</span></div></div></div>
+                              <div key={idx} className="linha-grafico">
+                                <span className="label-dia">{item.dia}</span>
+
+                                <div className="barra-fundo">
+                                  <div
+                                    className="barra-preenchida"
+                                    style={{ width: `${porcentagem}%` }}
+                                  >
+                                    <span className="barra-texto">
+                                      {item.valor ?? 0}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
                             );
                           })}
                         </div>
                       </div>
                     </div>
 
-                    {/* SUB-COLUNA 2: ESTOQUE REAL PUXADO DA TABELA DO MYSQL */}
+                    {/* SUB-COLUNA 2 — ESTOQUE (AGORA FUNCIONAL) */}
                     <div className="sub-coluna-escola so-no-desktop">
-                      <h3 className="subtitulo-secao">ESTOQUE DO BANCO DE DADOS</h3>
+                      <div className="cabecalho-estoque-com-botao">
+                        <h3 className="subtitulo-secao">ESTOQUE DO BANCO DE DADOS</h3>
+                        <button onClick={() => abrirModalEntrada()} className="btn-nova-entrada">
+                          + NOVA ENTRADA
+                        </button>
+                      </div>
+
                       <div className="estoque-lista-desktop">
-                        {dashboardEscola.itensEstoque.length > 0 ? (
-                          dashboardEscola.itensEstoque.map((item: any) => {
-                            const emAlerta = item.quantidade <= 10;
-                            return (
-                              <div key={item.id} className="pill-estoque-simples">
-                                <span>{item.produto?.nome || 'Item cadastrado'} {item.lote ? `(Lote: ${item.lote})` : ''}</span>
-                                <span className={`pill-qtd ${emAlerta ? 'pill-vermelho' : 'pill-verde'}`}>
-                                  {item.quantidade} {item.unidade ? item.unidade.toUpperCase() : 'KG'}
-                                </span>
+                        {(Array.isArray(dashboardEscola?.itensEstoque)
+                          ? dashboardEscola.itensEstoque
+                          : []
+                        ).map((produto: any) => (
+                          <div key={produto?.produto?.id ?? Math.random()} className="produto-bloco">
+
+                            <div
+                              className="produto-header"
+                              onClick={() =>
+                                setProdutoAberto(
+                                  produtoAberto === produto?.produto?.id
+                                    ? null
+                                    : produto?.produto?.id
+                                )
+                              }
+                            >
+                              <span>{produto?.produto?.nome ?? "Produto"}</span>
+                              <span>{produto?.total ?? 0} KG</span>
+                            </div>
+
+                            {produtoAberto === produto?.produto?.id && (
+                              <div className="lotes-container">
+
+                                {(Array.isArray(produto?.lotes)
+                                  ? produto.lotes
+                                  : []
+                                ).map((lote: any) => (
+                                  <div
+                                    key={lote?.id ?? Math.random()}
+                                    className="linha-lote linha-lote-clicavel"
+                                    onClick={() => abrirModalAjusteLote(lote)}
+                                    title="Clique para ajustar a quantidade deste lote"
+                                  >
+                                    <span>Lote: {lote?.lote ?? "N/A"}</span>
+                                    <span>{lote?.quantidade ?? 0}</span>
+                                    <span>
+                                      {lote?.validade
+                                        ? new Date(lote.validade).toLocaleDateString("pt-BR")
+                                        : "Sem validade"}
+                                    </span>
+                                  </div>
+                                ))}
+
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    abrirModalEntrada(produto?.produto?.id);
+                                  }}
+                                  className="btn-add-lote"
+                                >
+                                  + Adicionar lote
+                                </button>
+
                               </div>
-                            );
-                          })
-                        ) : (
-                          <p style={{ color: '#64748b', fontSize: '0.8rem', padding: '12px' }}>
-                            Nenhum item em estoque cadastrado no MySQL para esta escola ainda.
-                          </p>
-                        )}
+                            )}
+
+                          </div>
+                        ))}
                       </div>
                     </div>
 
-                    {/* SUB-COLUNA 3: AVISO AUTOMÁTICO DE REPOSIÇÃO */}
+                    {/* SUB-COLUNA 3 */}
                     <div className="sub-coluna-escola so-no-desktop">
                       <h3 className="subtitulo-secao">PEDIDOS DE REPOSIÇÃO AUTOMÁTICOS</h3>
+
                       <div className="caixa-pedido-estoque">
-                        <p style={{ fontWeight: 700, marginBottom: '12px' }}>Itens com baixo estoque no banco:</p>
+                        <p style={{ fontWeight: 700, marginBottom: '12px' }}>
+                          Itens com baixo estoque:
+                        </p>
+
                         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          {dashboardEscola.itensEstoque.filter((i: any) => i.quantidade <= 15).length > 0 ? (
+                          {(dashboardEscola?.itensEstoque ?? []).filter((i: any) => (i.quantidade ?? 0) <= 15).length > 0 ? (
                             dashboardEscola.itensEstoque
-                              .filter((i: any) => i.quantidade <= 15)
-                              .map((itemBaixo: any) => (
-                                <li key={itemBaixo.id} style={{ color: '#ef4444', fontWeight: 600 }}>
-                                  • {itemBaixo.produto?.nome} – Estoque crítico ({itemBaixo.quantidade} {itemBaixo.unidade})
+                              .filter((i: any) => (i.quantidade ?? 0) <= 15)
+                              .map((item: any) => (
+                                <li key={item.id} style={{ color: '#ef4444', fontWeight: 600 }}>
+                                  • {item.produto?.nome} – crítico ({item.quantidade} {item.unidade})
                                 </li>
                               ))
                           ) : (
-                            <li style={{ color: '#22c55e', fontWeight: 600 }}>• Todos os itens estão com níveis seguros no banco.</li>
+                            <li style={{ color: '#22c55e', fontWeight: 600 }}>
+                              • Estoque dentro do nível seguro
+                            </li>
                           )}
                         </ul>
-                        <p style={{ marginTop: '20px', lineHeight: '1.4', color: '#475569' }}>
-                          Essa lista é gerada automaticamente pelo sistema verificando a quantidade gravada no MySQL.
-                        </p>
                       </div>
                     </div>
 
-                    {/* TABELA ESTOQUE MOBILE TRADICIONAL REAL */}
+                    {/* MOBILE TABLE */}
                     <div className="secao-grafico mb-6 so-no-mobile">
-                      <h3 className="subtitulo-secao">ESTOQUE DO BANCO</h3>
+                      <div className="cabecalho-estoque-com-botao">
+                        <h3 className="subtitulo-secao">ESTOQUE DO BANCO</h3>
+                        <button onClick={() => abrirModalEntrada()} className="btn-nova-entrada">
+                          + NOVA ENTRADA
+                        </button>
+                      </div>
+
                       <div className="tabela-estoque-box">
-                        {dashboardEscola.itensEstoque.length > 0 ? (
-                          dashboardEscola.itensEstoque.map((est: any, idx: number) => (
-                            <div key={idx} className="linha-estoque">
-                              <span className="estoque-item font-bold">{est.produto?.nome || 'Item'}</span>
+                        {(dashboardEscola?.itensEstoque ?? []).length > 0 ? (
+                          dashboardEscola.itensEstoque.map((est: any) => (
+                            <div
+                              key={est.id}
+                              className="linha-estoque linha-estoque-clicavel"
+                              onClick={() => abrirModalAjusteLote(est)}
+                            >
+                              <span>{est.produto?.nome}</span>
                               <span>{est.quantidade} {est.unidade}</span>
-                              <span>Lote: {est.lote || 'N/A'}</span>
-                              <span>{est.validade ? new Date(est.validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'N/A'}</span>
-                              <div className="coluna-status-alerta"><div className={`status-quadrado ${est.quantidade <= 10 ? 'status-vermelho' : 'status-verde'}`}></div></div>
+                              <span>{est.lote || 'N/A'}</span>
+                              <span>
+                                {est.validade
+                                  ? new Date(est.validade).toLocaleDateString('pt-BR')
+                                  : 'N/A'}
+                              </span>
+
+                              <div className={`status-quadrado ${est.quantidade <= 10 ? 'status-vermelho' : 'status-verde'}`} />
                             </div>
                           ))
                         ) : (
-                          <p style={{ padding: '12px', textAlign: 'center', fontSize: '0.75rem', color: '#64748b' }}>
-                            Nenhum estoque registrado no banco.
+                          <p style={{ padding: '12px', fontSize: '0.75rem' }}>
+                            Nenhum estoque no banco
                           </p>
                         )}
                       </div>
@@ -447,16 +717,16 @@ export default function SelecaoEscola() {
       ========================================================================= */}
       {abaAtiva === 'calendario' && (
         <div className="layout-split-desktop">
-          
+
           <aside className={`coluna-lista-cardapios ${cardapioSelecionado ? 'esconder-no-mobile' : ''}`}>
             {carregandoCardapios ? (
               <p className="msg-vazio">Buscando cardápios...</p>
             ) : cardapios.map((item: any) => {
               const ativo = cardapioSelecionado?.id === item.id;
               return (
-                <div 
-                  key={item.id} 
-                  onClick={() => { setCardapioSelecionado(item); setSubAbaDetalhe('cardapio'); }} 
+                <div
+                  key={item.id}
+                  onClick={() => { setCardapioSelecionado(item); setSubAbaDetalhe('cardapio'); }}
                   className={`card-item ${getClasseStatus(item.status)} ${ativo ? 'selecionado' : ''}`}
                 >
                   <h3 className="card-titulo">{item.titulo || `Cardápio - Mês ${item.mes}/${item.ano}`}</h3>
@@ -571,6 +841,7 @@ export default function SelecaoEscola() {
         <main className="tela-centralizada"><h2>Desconectado do sistema</h2></main>
       )}
 
+      {/* MODAL — REPROVAR CARDÁPIO */}
       {modalReprovarAberto && (
         <div className="modal-overlay">
           <div className="modal-card-motivo">
@@ -579,6 +850,117 @@ export default function SelecaoEscola() {
             <div className="modal-motivo-botoes">
               <button onClick={() => setModalReprovarAberto(false)} className="btn-cancelar-escuro">CANCELAR</button>
               <button onClick={handleConfirmarReprovacao} className="btn-reprovar-vermelho">REPROVAR</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL — NOVA ENTRADA DE ESTOQUE */}
+      {modalEntradaAberto && (
+        <div className="modal-overlay">
+          <div className="modal-card-motivo">
+            <h3 className="modal-motivo-titulo" style={{ color: '#0b5280' }}>NOVA ENTRADA DE ESTOQUE</h3>
+
+            <select
+              value={formEntrada.produtoId}
+              onChange={(e) => setFormEntrada({ ...formEntrada, produtoId: e.target.value })}
+              className="input-modal-estoque"
+            >
+              <option value="">Selecione o produto</option>
+
+              {produtosDaEscolaUnicos.length > 0 && (
+                <optgroup label="Produtos já usados nesta escola">
+                  {produtosDaEscolaUnicos.map((p: any) => (
+                    <option key={p.id} value={p.id}>{p.nome}</option>
+                  ))}
+                </optgroup>
+              )}
+
+              {outrosProdutosCatalogo.length > 0 && (
+                <optgroup label="Outros produtos do catálogo">
+                  {outrosProdutosCatalogo.map((p: any) => (
+                    <option key={p.id} value={p.id}>{p.nome}</option>
+                  ))}
+                </optgroup>
+              )}
+            </select>
+
+            <input
+              type="text"
+              placeholder="Lote (ex: 029331)"
+              value={formEntrada.lote}
+              onChange={(e) => setFormEntrada({ ...formEntrada, lote: e.target.value })}
+              className="input-modal-estoque"
+            />
+
+            <input
+              type="number"
+              placeholder="Quantidade"
+              value={formEntrada.quantidade}
+              onChange={(e) => setFormEntrada({ ...formEntrada, quantidade: e.target.value })}
+              className="input-modal-estoque"
+            />
+
+            <select
+              value={formEntrada.unidade}
+              onChange={(e) => setFormEntrada({ ...formEntrada, unidade: e.target.value })}
+              className="input-modal-estoque"
+            >
+              <option value="kg">kg</option>
+              <option value="l">l</option>
+              <option value="cxs">cxs.</option>
+              <option value="un">un.</option>
+            </select>
+
+            <input
+              type="date"
+              value={formEntrada.validade}
+              onChange={(e) => setFormEntrada({ ...formEntrada, validade: e.target.value })}
+              className="input-modal-estoque"
+            />
+
+            <div className="modal-motivo-botoes">
+              <button onClick={() => setModalEntradaAberto(false)} className="btn-cancelar-escuro">CANCELAR</button>
+              <button onClick={handleSalvarEntrada} disabled={salvandoEstoque} className="btn-topo-aprovar">
+                {salvandoEstoque ? "SALVANDO..." : "SALVAR"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL — AJUSTE DE LOTE (RETIRAR/ADICIONAR) */}
+      {modalAjusteLoteAberto && itemParaAjuste && (
+        <div className="modal-overlay">
+          <div className="modal-card-motivo">
+            <h3 className="modal-motivo-titulo" style={{ color: '#0b5280' }}>
+              AJUSTAR LOTE {itemParaAjuste.lote}
+            </h3>
+            <p style={{ marginBottom: 12, fontSize: '0.8rem', color: '#64748b' }}>
+              Quantidade atual: <strong>{itemParaAjuste.quantidade}</strong> {itemParaAjuste.unidade || ''}
+            </p>
+
+            <input
+              type="number"
+              placeholder="Ex: -5 para retirar, 10 para adicionar"
+              value={deltaAjuste}
+              onChange={(e) => setDeltaAjuste(e.target.value)}
+              className="input-modal-estoque"
+            />
+
+            <input
+              type="text"
+              placeholder="Motivo (opcional)"
+              value={motivoAjusteLote}
+              onChange={(e) => setMotivoAjusteLote(e.target.value)}
+              className="input-modal-estoque"
+            />
+
+            <div className="modal-motivo-botoes">
+              <button onClick={() => setModalAjusteLoteAberto(false)} className="btn-cancelar-escuro">CANCELAR</button>
+              <button onClick={handleSalvarAjusteLote} disabled={salvandoEstoque} className="btn-topo-aprovar">
+                {salvandoEstoque ? "SALVANDO..." : "CONFIRMAR"}
+              </button>
             </div>
           </div>
         </div>
