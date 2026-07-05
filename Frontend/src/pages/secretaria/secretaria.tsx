@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, GraduationCap, Calendar, LogOut, ArrowLeft, Download } from 'lucide-react';
+import { Search, GraduationCap, Calendar, LogOut, ArrowLeft, Download } from 'lucide-react';
 import './secretaria.css';
 
 const API_URL = 'http://localhost:3001';
@@ -358,7 +358,6 @@ export default function Secretaria() {
               <input type="text" value={busca} onChange={(e) => setBusca(e.target.value)} className="input-busca" placeholder="Buscar escola..." />
               <Search className="icone-busca" size={18} />
             </div>
-            <button className="btn-filtro"><Filter size={18} /></button>
           </div>
           <main className="lista-escolas">
             {carregandoEscolas ? <p className="msg-vazio">Carregando escolas...</p> : escolasFiltradas.length > 0 ? (
