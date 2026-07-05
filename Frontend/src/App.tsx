@@ -12,6 +12,7 @@ export default function App() {
             <Route path="/escolas" element={<SelecaoEscola />} />
             <Route element={<MainLayout />}></Route>
             <Route path="*" element={<NotFound />} />
+            
         </Routes>
     );
 }
