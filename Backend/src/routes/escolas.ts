@@ -196,9 +196,15 @@ router.get('/:id/dashboard', async (req, res) => {
                 label: `${d._sum.sobraKg ?? 0}kg`
             })),
 
+            // Lista "flat" (um item por lote) — usada tanto pela tabela
+            // mobile quanto pelos "Pedidos de reposição". A visão desktop
+            // (agrupada por produto) é montada no próprio front a partir
+            // desta lista, incluindo o produto.id que faltava aqui antes.
             itensEstoque: estoque.map(i => ({
                 id: i.id,
+                estoqueId: i.estoqueId,
                 produto: {
+                    id: i.produto.id,
                     nome: i.produto.nome
                 },
                 quantidade: i.quantidade,

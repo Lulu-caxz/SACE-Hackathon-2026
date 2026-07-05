@@ -359,6 +359,11 @@ export default function SelecaoEscola() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  };
+
   // Produtos já usados por esta escola (vem do dashboard já carregado, sem fetch extra)
   const produtosDaEscolaUnicos = Array.from(
     new Map(
@@ -371,6 +376,28 @@ export default function SelecaoEscola() {
 
   const idsProdutosDaEscola = new Set(produtosDaEscolaUnicos.map((p: any) => p.id));
   const outrosProdutosCatalogo = listaProdutos.filter((p: any) => !idsProdutosDaEscola.has(p.id));
+
+  // Agrupa os lotes (itensEstoque, formato "flat" vindo do backend — um
+  // item por lote) por produto, só para a visão desktop, que mostra o
+  // total por produto e a lista de lotes dentro do accordion.
+  const itensEstoquePorProduto = React.useMemo(() => {
+    const lista = Array.isArray(dashboardEscola?.itensEstoque) ? dashboardEscola.itensEstoque : [];
+    const mapa = new Map<string, { produto: any; total: number; lotes: any[] }>();
+
+    for (const item of lista) {
+      const chave = item?.produto?.id ?? item?.produto?.nome ?? 'sem-produto';
+
+      if (!mapa.has(chave)) {
+        mapa.set(chave, { produto: item?.produto, total: 0, lotes: [] });
+      }
+
+      const grupo = mapa.get(chave)!;
+      grupo.total += item?.quantidade ?? 0;
+      grupo.lotes.push(item);
+    }
+
+    return Array.from(mapa.values());
+  }, [dashboardEscola?.itensEstoque]);
 
   const escolasFiltradas = escolas.filter((escola) => (escola.nome || escola.name || '').toLowerCase().includes(busca.toLowerCase()));
 
@@ -404,12 +431,17 @@ export default function SelecaoEscola() {
             <GraduationCap size={26} />
             {abaAtiva === 'escolas' && <span className="traco-ativo"></span>}
           </button>
+
           <button onClick={() => { setAbaAtiva('calendario'); }} className={`btn-topo-nav ${abaAtiva === 'calendario' ? 'ativo' : ''}`}>
             <div className="wrapper-cal">
               <Calendar size={24} />
-              <span className="ponto-rosa"></span>
             </div>
             {abaAtiva === 'calendario' && <span className="traco-ativo"></span>}
+          </button>
+
+          <button onClick={handleLogout} className={`btn-topo-nav ${abaAtiva === 'escolas' ? 'ativo' : ''}`}>
+            {abaAtiva === 'sair' && <span className="indicador-ativo"></span>}
+            <LogOut size={24} />
           </button>
         </div>
       </header>
@@ -576,10 +608,7 @@ export default function SelecaoEscola() {
                       </div>
 
                       <div className="estoque-lista-desktop">
-                        {(Array.isArray(dashboardEscola?.itensEstoque)
-                          ? dashboardEscola.itensEstoque
-                          : []
-                        ).map((produto: any) => (
+                        {itensEstoquePorProduto.map((produto: any) => (
                           <div key={produto?.produto?.id ?? Math.random()} className="produto-bloco">
 
                             <div
@@ -976,10 +1005,10 @@ export default function SelecaoEscola() {
           {abaAtiva === 'calendario' && <span className="indicador-ativo"></span>}
           <div className="icone-calendario-wrapper">
             <Calendar size={24} />
-            <span className="ponto-rosa"></span>
+
           </div>
         </button>
-        <button onClick={() => { setAbaAtiva('sair'); setEscolaSelecionada(null); setCardapioSelecionado(null); }} className={`nav-item ${abaAtiva === 'sair' ? 'ativo' : ''}`}>
+        <button onClick={handleLogout} className={`nav-item ${abaAtiva === 'sair' ? 'ativo' : ''}`}>
           {abaAtiva === 'sair' && <span className="indicador-ativo"></span>}
           <LogOut size={24} />
         </button>
