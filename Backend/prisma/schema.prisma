@@ -39,11 +39,25 @@ enum FaixaEtaria {
   EJA
 }
 
+enum TipoMovimentacao {
+  ENTRADA
+  SAIDA
+  AJUSTE
+}
+
 model Escola {
   id       String @id @default(uuid())
   nome     String
+  bairro   String
+  endereco String
+  email    String
+  telefone String
+  diretor  String
+  supervisor     String
 
   usuarios Usuario[]
+
+  estoque   Estoque?   @relation
 
   @@map("escolas")
 }
@@ -157,7 +171,7 @@ model RegistroInspecao {
   inspetora       Usuario     @relation(fields: [inspetoraId], references: [id])
 
   data            DateTime    @db.Date
-
+  
   alunosPresentes Int
   pratosServidos  Int
 
@@ -168,4 +182,72 @@ model RegistroInspecao {
   criadoEm        DateTime    @default(now())
 
   @@map("registros_inspecao")
+}
+
+model Estoque {
+  id        String  @id @default(uuid())
+
+  escolaId  String  @unique
+  escola    Escola  @relation(fields: [escolaId], references: [id], onDelete: Cascade)
+
+  itens     ItemEstoque[]
+
+  criadoEm  DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  movimentacoes MovimentacaoEstoque[]
+
+  @@map("estoques")
+}
+
+model Produto {
+  id     String @id @default(uuid())
+
+  nome   String
+  marca  String?
+
+  itens  ItemEstoque[]
+
+  @@map("produtos")
+}
+
+model ItemEstoque {
+  id          String @id @default(uuid())
+
+  estoqueId   String
+  estoque     Estoque @relation(fields: [estoqueId], references: [id], onDelete: Cascade)
+
+  produtoId   String
+  produto     Produto @relation(fields: [produtoId], references: [id])
+
+  lote        String?
+  validade    DateTime?
+
+  quantidade  Float
+  unidade     String @default("kg")
+
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  movimentacoes MovimentacaoEstoque[]
+
+  @@map("itens_estoque")
+}
+
+model MovimentacaoEstoque {
+  id         String @id @default(uuid())
+
+  estoqueId  String
+  estoque    Estoque @relation(fields: [estoqueId], references: [id], onDelete: Cascade)
+
+  itemId     String
+  item       ItemEstoque @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  tipo       TipoMovimentacao
+  quantidade Float
+  motivo     String?
+
+  criadoEm   DateTime @default(now())
+
+  @@map("movimentacoes_estoque")
 }

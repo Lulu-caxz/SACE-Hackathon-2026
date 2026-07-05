@@ -3,7 +3,7 @@ import { Search, GraduationCap, Calendar, LogOut, ArrowLeft, Download } from 'lu
 import './secretaria.css';
 
 const API_URL = 'http://localhost:3001';
-const CORES = ['cor-azul-escuro', 'cor-azul-medio', 'cor-roxo', 'cor-rosa'];
+const CORES = ['cor-azul-escuro', 'cor-azul-medio'];
 
 interface Escola { id: number | string; nome?: string; name?: string; }
 interface Cardapio {
