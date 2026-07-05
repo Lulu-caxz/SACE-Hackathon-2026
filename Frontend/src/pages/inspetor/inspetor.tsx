@@ -25,13 +25,13 @@ export default function InspetoraHome() {
   const [telaAtual, setTelaAtual] = useState<'lista' | 'salas'>('lista');
   const [abaNav, setAbaNav] = useState<'escola' | 'sair'>('escola');
 
- 
+
   const [usuario, setUsuario] = useState<any>(null);
   const [contagens, setContagens] = useState<ContagemHistorica[]>([]);
   const [cardapioReal, setCardapioReal] = useState<any>(null);
   const [salvandoBanco, setSalvandoBanco] = useState(false);
 
-  
+
   const [sobraKg, setSobraKg] = useState<string>('0');
   const [pratosFeitos, setPratosFeitos] = useState<string>('0');
 
@@ -75,7 +75,7 @@ export default function InspetoraHome() {
     loadUser();
   }, []);
 
- 
+
   useEffect(() => {
     async function carregarDadosBanco() {
       try {
@@ -109,7 +109,7 @@ export default function InspetoraHome() {
     setModalAberto(true);
   };
 
- 
+
   const handleSalvarSala = async () => {
     if (!salaEmEdicao) return;
 
@@ -136,13 +136,13 @@ export default function InspetoraHome() {
           pratosServidos: Number(pratosFeitos || salaEmEdicao.qtdAlunos),
           comidaFeitaKg: 0,
           sobraKg: Number(sobraKg || 0),
-          observacoes: salaEmEdicao.qtdRestricao > 0 
+          observacoes: salaEmEdicao.qtdRestricao > 0
             ? `[${salaEmEdicao.nome}] Restrições (${salaEmEdicao.qtdRestricao}): ${salaEmEdicao.descRestricao}`
             : `[${salaEmEdicao.nome}] Contagem padrão`
         })
       });
 
-    
+
       const resDiarios = await fetch(`${API_URL}/diarios`);
       if (resDiarios.ok) setContagens(await resDiarios.json());
     } catch (err) {
@@ -155,8 +155,8 @@ export default function InspetoraHome() {
 
   return (
     <div className="inspetora-container modo-desktop-expandido">
-      
- 
+
+
       <header className="cabecalho-inspetora">
         <div className="cabecalho-esquerda">
           {telaAtual === 'salas' && (
@@ -169,14 +169,25 @@ export default function InspetoraHome() {
             <p>{usuario ? usuario.nome : "Nome do responsável"}</p>
           </div>
         </div>
+
+        <div className="cabecalho-acoes-inspetora">
+          <button onClick={() => setAbaNav('escola')} className={`btn-topo-nav-inspetora ${abaNav === 'escola' ? 'ativo' : ''}`}>
+            <GraduationCap size={26} />
+            {abaNav === 'escola' && <span className="traco-ativo-inspetora"></span>}
+          </button>
+          <button onClick={() => setAbaNav('sair')} className={`btn-topo-nav-inspetora ${abaNav === 'sair' ? 'ativo' : ''}`}>
+            <LogOut size={24} />
+            {abaNav === 'sair' && <span className="traco-ativo-inspetora"></span>}
+          </button>
+        </div>
       </header>
 
-     
+
       <div className="layout-split-desktop-inspetor">
-        
-        
+
+
         <aside className={`coluna-historico-contagens ${telaAtual === 'salas' ? 'esconder-no-mobile' : ''}`}>
-          
+
           <button onClick={() => setTelaAtual('salas')} className="btn-registrar-contagem-topo">
             REGISTRAR CONTAGEM
           </button>
@@ -203,10 +214,10 @@ export default function InspetoraHome() {
           </div>
         </aside>
 
-    
+
         <section className={`coluna-painel-salas ${telaAtual === 'lista' ? 'esconder-no-mobile' : ''}`}>
-          
-         
+
+
           <div className="topo-voltar so-no-mobile">
             <button onClick={() => setTelaAtual('lista')} className="btn-voltar-simples">
               <ArrowLeft size={20} />
@@ -219,14 +230,14 @@ export default function InspetoraHome() {
               CARDÁPIO - 06/07/2026 A 10/07/2026 {salvandoBanco && <span style={{ fontSize: '0.8rem', color: '#22c55e' }}>(Gravando...)</span>}
             </h2>
 
-           
+
             <div className="grid-tres-areas-salas">
-              
-            
+
+
               <div className="area-botoes-salas">
                 <div className="grid-salas">
-                  
-                  
+
+
                   {salas.map((sala) => (
                     <div key={sala.id} onClick={() => handleEditarSala(sala)} className="card-sala">
                       <h4 className="sala-nome">{sala.nome}</h4>
@@ -240,7 +251,7 @@ export default function InspetoraHome() {
                 </div>
               </div>
 
-             
+
               <div className="area-mural-restricoes">
                 <h4 className="titulo-secao-mural">RESTRIÇÕES</h4>
                 <div className="lista-textos-restricao">
@@ -261,10 +272,10 @@ export default function InspetoraHome() {
                 </div>
               </div>
 
-             
+
               <div className="area-resumo-lateral">
-                
-              
+
+
                 <div className="grid-resumo-inputs">
                   <div>
                     <span className="resumo-lbl">Total de Alunos</span>
@@ -276,25 +287,25 @@ export default function InspetoraHome() {
                   </div>
                   <div>
                     <span className="resumo-lbl">Pratos Feitos</span>
-                    <input 
-                      type="number" 
-                      value={pratosFeitos} 
-                      onChange={(e) => setPratosFeitos(e.target.value)} 
-                      className="input-resumo-vazada" 
+                    <input
+                      type="number"
+                      value={pratosFeitos}
+                      onChange={(e) => setPratosFeitos(e.target.value)}
+                      className="input-resumo-vazada"
                     />
                   </div>
                   <div>
                     <span className="resumo-lbl">Desperdício</span>
-                    <input 
-                      type="number" 
-                      value={sobraKg} 
-                      onChange={(e) => setSobraKg(e.target.value)} 
-                      className="input-resumo-cheia" 
+                    <input
+                      type="number"
+                      value={sobraKg}
+                      onChange={(e) => setSobraKg(e.target.value)}
+                      className="input-resumo-cheia"
                     />
                   </div>
                 </div>
 
-           
+
                 <div className="preview-cardapio-resumo">
                   <div className="subtitulo-preview-resumo">
                     <h4>CARDÁPIO CEI</h4>
@@ -383,19 +394,6 @@ export default function InspetoraHome() {
           </div>
         </div>
       )}
-
-    
-      <nav className="nav-inferior-inspetora so-no-mobile">
-        <button onClick={() => setAbaNav('escola')} className={`nav-item ${abaNav === 'escola' ? 'ativo' : ''}`}>
-          {abaNav === 'escola' && <span className="barra-ativa"></span>}
-          <GraduationCap size={28} />
-        </button>
-
-        <button onClick={() => setAbaNav('sair')} className={`nav-item ${abaNav === 'sair' ? 'ativo' : ''}`}>
-          {abaNav === 'sair' && <span className="barra-ativa"></span>}
-          <LogOut size={28} />
-        </button>
-      </nav>
 
     </div>
   );

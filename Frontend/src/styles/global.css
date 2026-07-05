@@ -27,8 +27,3 @@ input {
     border: none;
     outline: none;
 }
-
-input:focus {
-    border: none;
-    box-shadow: none;
-}
