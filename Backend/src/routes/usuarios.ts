@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { Router } from "express";
+import bcrypt from "bcrypt";
 
 const router = Router();
 
@@ -39,7 +40,7 @@ router.post("/criar", async (req, res) => {
                 role,
                 nome,
                 email,
-                password,
+                password: await bcrypt.hash(password, 10),
                 cpf,
                 escolaId,
             },

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, GraduationCap, Calendar, LogOut, ArrowLeft, Download } from 'lucide-react';
-import './selecao-escola.css';
+import { useState, useEffect } from 'react';
+import { Search, GraduationCap, Calendar, LogOut, ArrowLeft, Download } from 'lucide-react';
+import './secretaria.css';
 
 const API_URL = 'http://localhost:3001';
 const CORES = ['cor-azul-escuro', 'cor-azul-medio', 'cor-roxo', 'cor-rosa'];
@@ -72,6 +72,7 @@ const DADOS_ESTOQUE = [
 
 export default function SelecaoEscola() {
   const [abaAtiva, setAbaAtiva] = useState<'escolas' | 'calendario' | 'sair'>('escolas');
+  const [usuario, setUsuario] = useState<any>(null);
 
   
   const [escolas, setEscolas] = useState<Escola[]>([]);
@@ -105,7 +106,33 @@ export default function SelecaoEscola() {
     carregarEscolas();
   }, []);
 
-  
+
+
+  useEffect(() => {
+    async function loadUser() {
+        const token = localStorage.getItem("token");
+
+        if (!token) return;
+
+        const resposta = await fetch("http://localhost:3001/auth/me", {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        if (resposta.ok) {
+            const data = await resposta.json();
+            setUsuario(data);
+        }
+    }
+
+    loadUser();
+}, []);
+
+
+
+
+  // Busca Cardápios e Referências Nutricionais do Banco
   useEffect(() => {
     if (abaAtiva === 'calendario') {
       async function carregarDados() {
@@ -173,7 +200,7 @@ export default function SelecaoEscola() {
       <header className="cabecalho">
         <div className="cabecalho-texto">
           <h1>SECRETARIA</h1>
-          <p>Nome do responsável</p>
+          <p>{usuario ? `${usuario.nome}` : "Carregando..."}</p>
         </div>
       </header>
 
@@ -380,7 +407,6 @@ export default function SelecaoEscola() {
               <input type="text" value={busca} onChange={(e) => setBusca(e.target.value)} className="input-busca" placeholder="Buscar escola..." />
               <Search className="icone-busca" size={18} />
             </div>
-            <button className="btn-filtro"><Filter size={18} /></button>
           </div>
           <main className="lista-escolas">
             {carregandoEscolas ? <p className="msg-vazio">Carregando escolas...</p> : escolasFiltradas.map((escola, index) => (

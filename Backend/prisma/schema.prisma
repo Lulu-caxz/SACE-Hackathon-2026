@@ -9,11 +9,10 @@ datasource db {
 }
 
 enum Role {
-  ALUNO
-  INSPETORA  
+  INSPETOR  
   DIRECAO
   SECRETARIA
-  NUTRICAO
+  NUTRICIONISTA
 }
 
 enum DiaSemana {

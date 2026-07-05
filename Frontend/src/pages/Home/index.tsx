@@ -2,7 +2,6 @@ import "./index.css";
 import ArrowIcon from "../../assets/icons/arrow.svg";
 import { useState } from "react";
 import Cardapio from "./components/cardapio";
-import { useEffect } from "react";
 
 export default function Home() {
     const [typeLogin, setTypeLogin] = useState("");
@@ -46,12 +45,22 @@ export default function Home() {
 
         const data = await resposta.json()
 
-        if (resposta.ok) {
+        if (resposta.ok && data.usuario) {
             localStorage.setItem("token", data.token)
-            console.log(data.usuario)
+            console.log(data)
+            if (data.usuario.role == "SECRETARIA") {
+                window.location.href = "/secretaria"
+            }
+            if (data.usuario.role == "INSPETOR") {
+                window.location.href = "/inspetor"
+            }
+            if (data.usuario.role == "NUTRICIONISTA") {
+                window.location.href = "/nutricionista"
+            }
+            
 
         } else {
-            console.log(data.message)
+            console.log(data.message , "erro")
         }
     }
 
