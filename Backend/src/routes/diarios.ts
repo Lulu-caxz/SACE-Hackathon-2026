@@ -3,127 +3,121 @@ import { Router } from "express";
 
 const router = Router();
 
-// buscar todos
+// LISTAR TODOS
 router.get("/", async (req, res) => {
-    try {
-        const diarios = await prisma.registroInspecao.findMany({
-            include: {
-                cardapioDia: true,
-            },
-        });
+  try {
+    const diarios = await prisma.registroInspecao.findMany({
+      include: {
+        cardapioDia: true,
+      },
+    });
 
-        res.json(diarios);
-    } catch (error) {
-        res.status(500).json(error);
-    }
+    res.json(diarios);
+  } catch (error) {
+    res.status(500).json(error);
+  }
 });
 
-// buscar por id
+// BUSCAR POR ID
 router.get("/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        const diario = await prisma.registroInspecao.findUnique({
-            where: {
-                id,
-            },
-            include: {
-                cardapioDia: true,
-            },
-        });
+    const diario = await prisma.registroInspecao.findUnique({
+      where: { id },
+      include: {
+        cardapioDia: true,
+      },
+    });
 
-        res.json(diario);
-    } catch (error) {
-        res.status(500).json(error);
-    }
+    res.json(diario);
+  } catch (error) {
+    res.status(500).json(error);
+  }
 });
 
-// criar
+// CRIAR
 router.post("/criar", async (req, res) => {
-    try {
-        const {
-            cardapioDiaId,
-            inspetoraId,
-            data,
-            alunosPresentes,
-            pratosServidos,
-            comidaFeitaKg,
-            sobraKg,
-            observacoes,
-        } = req.body;
+  try {
+    const {
+      escolaId,
+      cardapioDiaId,
+      data,
+      pratosServidos,
+      comidaFeitaKg,
+      sobraKg,
+      observacoes,
+    } = req.body;
 
-        const diario = await prisma.registroInspecao.create({
-            data: {
-                cardapioDiaId,
-                inspetoraId,
-                data: new Date(data),
-                alunosPresentes: Number(alunosPresentes),
-                pratosServidos: Number(pratosServidos || 0),
-                comidaFeitaKg: Number(comidaFeitaKg),
-                sobraKg: Number(sobraKg),
-                observacoes,
-            },
-        });
-
-        res.status(201).json(diario);
-    } catch (error) {
-        res.status(400).json(error);
+    if (!escolaId || !cardapioDiaId || !data) {
+      return res.status(400).json({
+        error: "escolaId, cardapioDiaId e data são obrigatórios",
+      });
     }
+
+    const diario = await prisma.registroInspecao.create({
+      data: {
+        escolaId,
+        cardapioDiaId,
+        data: new Date(data),
+        pratosServidos: Number(pratosServidos ?? 0),
+        comidaFeitaKg: Number(comidaFeitaKg ?? 0),
+        sobraKg: Number(sobraKg ?? 0),
+        observacoes,
+      },
+    });
+
+    return res.status(201).json(diario);
+  } catch (error) {
+    return res.status(400).json(error);
+  }
 });
 
-// atualizar
+// ATUALIZAR
 router.put("/atualizar/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        const {
-            cardapioDiaId,
-            inspetoraId,
-            data,
-            alunosPresentes,
-            pratosServidos,
-            comidaFeitaKg,
-            sobraKg,
-            observacoes,
-        } = req.body;
+    const {
+      cardapioDiaId,
+      data,
+      pratosServidos,
+      comidaFeitaKg,
+      sobraKg,
+      observacoes,
+    } = req.body;
 
-        const diario = await prisma.registroInspecao.update({
-            where: {
-                id,
-            },
-            data: {
-                cardapioDiaId,
-                inspetoraId,
-                data: new Date(data),
-                alunosPresentes: Number(alunosPresentes),
-                pratosServidos: Number(pratosServidos || 0),
-                comidaFeitaKg: Number(comidaFeitaKg),
-                sobraKg: Number(sobraKg),
-                observacoes,
-            },
-        });
+    const diario = await prisma.registroInspecao.update({
+      where: { id },
+      data: {
+        ...(cardapioDiaId && { cardapioDiaId }),
+        ...(data && { data: new Date(data) }),
+        pratosServidos: Number(pratosServidos ?? 0),
+        comidaFeitaKg: Number(comidaFeitaKg ?? 0),
+        sobraKg: Number(sobraKg ?? 0),
+        observacoes,
+      },
+    });
 
-        res.json(diario);
-    } catch (error) {
-        res.status(400).json(error);
-    }
+    return res.json(diario);
+  } catch (error) {
+    return res.status(400).json(error);
+  }
 });
 
-// deletar
+// DELETAR
 router.delete("/deletar/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        const diario = await prisma.registroInspecao.delete({
-            where: {
-                id,
-            },
-        });
+    const diario = await prisma.registroInspecao.delete({
+      where: { id },
+    });
 
-        res.json(diario);
-    } catch (error) {
-        res.status(400).json(error);
-    }
+    return res.json(diario);
+  } catch (error) {
+    return res.status(400).json(error);
+  }
 });
 
-export default router;
+export default router;  
