@@ -1,0 +1,57 @@
+.cardapio{
+    width:100%;
+    min-height:100vh;
+    padding:50px 30px;
+    box-sizing:border-box;
+}
+
+.titulo-cardapio{
+    color:white;
+    text-align:center;
+    margin-bottom:35px;
+}
+
+.titulo-cardapio h2{
+    font-family:"gunters medium";
+    font-size:32px;
+}
+
+.titulo-cardapio span{
+    font-size:12px;
+    font-family:"Montserrat";
+}
+
+.dia-cardapio{
+    margin-bottom:25px;
+}
+
+.cabecalho-dia{
+    background:white;
+    color:#024B7E;
+    padding:8px 15px;
+    border-radius:4px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+    font-family:"gunters medium";
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    color:white;
+    font-family:"Montserrat";
+    font-size:13px;
+}
+
+td{
+    border:1px solid white;
+    padding:10px;
+    vertical-align:top;
+}
+
+td:first-child{
+    width:130px;
+    font-family:"gunters medium";
+}
