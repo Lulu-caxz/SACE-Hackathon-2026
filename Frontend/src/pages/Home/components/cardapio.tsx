@@ -18,13 +18,21 @@ export default function Cardapio({
         {
             dia: "QUARTA-FEIRA",
             data: "08/07/2026"
+        },
+        {
+            dia: "QUINTA-FEIRA",
+            data: "08/07/2026"
+        },
+        {
+            dia: "SEXTA-FEIRA",
+            data: "08/07/2026"
         }
     ];
 
     return (
         <div
             className="cardapio"
-            style={{ background: cor }}
+            style={{ background: cor, color: cor}}
         >
             <div className="titulo-cardapio">
 
@@ -42,9 +50,9 @@ export default function Cardapio({
                         key={index}
                     >
 
-                        <div className="cabecalho-dia">
+                        <div className="cabecalho-dia" style={{alignItems:"center"}}>
 
-                            <span>{item.dia}</span>
+                            <span style={{color: cor}}>{item.dia}</span>
 
                             <small>{item.data}</small>
 
