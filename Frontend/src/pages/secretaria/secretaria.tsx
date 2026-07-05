@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, GraduationCap, Calendar, LogOut, ArrowLeft, Download } from 'lucide-react';
 import './secretaria.css';
 

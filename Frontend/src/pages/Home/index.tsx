@@ -2,7 +2,6 @@ import "./index.css";
 import ArrowIcon from "../../assets/icons/arrow.svg";
 import { useState } from "react";
 import Cardapio from "./components/cardapio";
-import { useEffect } from "react";
 
 export default function Home() {
     const [typeLogin, setTypeLogin] = useState("");
