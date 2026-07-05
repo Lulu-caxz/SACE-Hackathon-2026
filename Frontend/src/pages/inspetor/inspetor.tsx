@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GraduationCap, LogOut, ArrowLeft, Plus } from 'lucide-react';
 import './inspetor.css';
 
+const API_URL = 'http://localhost:3001';
+
 interface ContagemHistorica {
-  id: number;
+  id: string | number;
   data: string;
-  alunosContados: number;
+  alunosPresentes: number;
   pratosServidos: number;
-  desperdicio: number;
+  sobraKg?: number;
+  observacoes?: string;
 }
 
 interface Sala {
@@ -18,38 +21,76 @@ interface Sala {
   descRestricao: string;
 }
 
-const CONTAGENS_MOCK: ContagemHistorica[] = [
-  { id: 1, data: '05/07/2026', alunosContados: 439, pratosServidos: 419, desperdicio: 20 },
-  { id: 2, data: '05/07/2026', alunosContados: 439, pratosServidos: 419, desperdicio: 20 },
-  { id: 3, data: '05/07/2026', alunosContados: 439, pratosServidos: 419, desperdicio: 20 },
-  { id: 4, data: '05/07/2026', alunosContados: 439, pratosServidos: 419, desperdicio: 20 },
-];
-
 export default function InspetoraHome() {
   const [telaAtual, setTelaAtual] = useState<'lista' | 'salas'>('lista');
   const [abaNav, setAbaNav] = useState<'escola' | 'sair'>('escola');
 
-  const [contagens] = useState<ContagemHistorica[]>(CONTAGENS_MOCK);
-  const dataContagemAtual = '06/07/2026';
+  // Estados com dados reais da API
+  const [usuario, setUsuario] = useState<any>(null);
+  const [contagens, setContagens] = useState<ContagemHistorica[]>([]);
+  const [cardapioReal, setCardapioReal] = useState<any>(null);
+  const [salvandoBanco, setSalvandoBanco] = useState(false);
 
+  const dataContagemAtual = new Date().toLocaleDateString('pt-BR');
 
+  
   const [salas, setSalas] = useState<Sala[]>([
     { id: 1, nome: 'SALA 1', qtdAlunos: 30, qtdRestricao: 0, descRestricao: '' },
     { id: 2, nome: 'SALA 2', qtdAlunos: 45, qtdRestricao: 0, descRestricao: '' },
-    { id: 3, nome: 'SALA 3', qtdAlunos: 10, qtdRestricao: 1, descRestricao: 'O aluno possui intolerância à lactose. Utilizar apenas alimentos e bebidas livres de lactose.' },
-    { id: 4, nome: 'SALA 4', qtdAlunos: 35, qtdRestricao: 1, descRestricao: 'O aluno possui alergia a ovos e derivados. Evitar qualquer alimento que contenha esse ingrediente.' },
-    { id: 5, nome: 'SALA 5', qtdAlunos: 10, qtdRestricao: 0, descRestricao: '' },
   ]);
 
   const [modalAberto, setModalAberto] = useState(false);
   const [salaEmEdicao, setSalaEmEdicao] = useState<Sala | null>(null);
 
-
+  
   const totalAlunosComendo = salas.reduce((acc, sala) => acc + (Number(sala.qtdAlunos) || 0), 0);
   const totalRestricoes = salas.reduce((acc, sala) => acc + (Number(sala.qtdRestricao) || 0), 0);
-
- 
   const listaRestricoes = salas.filter(s => s.qtdRestricao > 0 && s.descRestricao.trim() !== '');
+
+  
+  useEffect(() => {
+    async function loadUser() {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          setUsuario(await res.json());
+        }
+      } catch (err) {
+        console.error("Erro ao carregar usuário logado:", err);
+      }
+    }
+    loadUser();
+  }, []);
+
+  
+  useEffect(() => {
+    async function carregarDadosBanco() {
+      try {
+        
+        const resDiarios = await fetch(`${API_URL}/diarios`);
+        if (resDiarios.ok) {
+          const dados = await resDiarios.json();
+          setContagens(dados);
+        }
+
+   
+        const resCardapios = await fetch(`${API_URL}/cardapios`);
+        if (resCardapios.ok) {
+          const listaCardapios = await resCardapios.json();
+          if (listaCardapios.length > 0) {
+            setCardapioReal(listaCardapios[0]);
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao carregar dados do back-end:", err);
+      }
+    }
+    carregarDadosBanco();
+  }, [telaAtual]);
 
   const handleNovaSala = () => {
     const novoNum = salas.length + 1;
@@ -68,8 +109,11 @@ export default function InspetoraHome() {
     setModalAberto(true);
   };
 
-  const handleSalvarSala = () => {
+  
+  const handleSalvarSala = async () => {
     if (!salaEmEdicao) return;
+
+    
     setSalas(prev => {
       const existe = prev.some(s => s.id === salaEmEdicao.id);
       if (existe) {
@@ -77,33 +121,78 @@ export default function InspetoraHome() {
       }
       return [...prev, salaEmEdicao];
     });
+
     setModalAberto(false);
-    setSalaEmEdicao(null);
+
+    try {
+      setSalvandoBanco(true);
+      const diaId = cardapioReal?.dias?.[0]?.id;
+
+     
+      await fetch(`${API_URL}/diarios/criar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cardapioDiaId: diaId || null,
+          inspetoraId: usuario?.id || null,
+          data: new Date().toISOString(),
+          alunosPresentes: Number(salaEmEdicao.qtdAlunos),
+          pratosServidos: Number(salaEmEdicao.qtdAlunos),
+          comidaFeitaKg: 0,
+          sobraKg: 0,
+          observacoes: salaEmEdicao.qtdRestricao > 0 
+            ? `[${salaEmEdicao.nome}] Restrições (${salaEmEdicao.qtdRestricao}): ${salaEmEdicao.descRestricao}`
+            : `[${salaEmEdicao.nome}] Contagem padrão (Sem restrições)`
+        })
+      });
+    } catch (err) {
+      console.error("Erro ao salvar contagem no banco de dados:", err);
+    } finally {
+      setSalvandoBanco(false);
+      setSalaEmEdicao(null);
+    }
   };
 
   return (
     <div className="inspetora-container">
-      
+     
       <header className="cabecalho-inspetora">
         <h1>INSPETOR(A)</h1>
-        <p>Nome do responsável</p>
+        <p>{usuario ? usuario.nome : "Carregando perfil..."}</p>
       </header>
 
       {telaAtual === 'lista' ? (
         
-     
+        
         <main className="area-conteudo">
           <div className="lista-contagens">
-            {contagens.map((item) => (
-              <div key={item.id} className="card-contagem">
-                <h3 className="contagem-titulo">Contagem - {item.data}</h3>
-                <div className="contagem-dados">
-                  <div><span className="contagem-label">Als. Cont.</span><span className="contagem-val">{item.alunosContados}</span></div>
-                  <div><span className="contagem-label">Pts Serv.</span><span className="contagem-val">{item.pratosServidos}</span></div>
-                  <div><span className="contagem-label">Desperdício</span><span className="contagem-val">{item.desperdicio}</span></div>
+            {contagens.length > 0 ? (
+              contagens.map((item: any) => (
+                <div key={item.id} className="card-contagem">
+                  <h3 className="contagem-titulo">
+                    Contagem - {new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                  </h3>
+                  <div className="contagem-dados">
+                    <div>
+                      <span className="contagem-label">Als. Cont.</span>
+                      <span className="contagem-val">{item.alunosPresentes || 0}</span>
+                    </div>
+                    <div>
+                      <span className="contagem-label">Pts Serv.</span>
+                      <span className="contagem-val">{item.pratosServidos || 0}</span>
+                    </div>
+                    <div>
+                      <span className="contagem-label">Sobra (Kg)</span>
+                      <span className="contagem-val">{item.sobraKg || 0}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p style={{ textAlign: 'center', color: '#64748b', marginTop: '30px', fontSize: '0.9rem' }}>
+                Nenhuma contagem registrada no banco de dados ainda.
+              </p>
+            )}
           </div>
 
           <button onClick={() => setTelaAtual('salas')} className="btn-registrar-contagem">
@@ -113,23 +202,27 @@ export default function InspetoraHome() {
 
       ) : (
 
-
+      
         <main className="area-conteudo flex-col justify-between">
           <div>
             <div className="topo-voltar">
               <button onClick={() => setTelaAtual('lista')} className="btn-voltar-simples">
                 <ArrowLeft size={20} />
               </button>
-              <h2 className="titulo-data">CONTAGEM {dataContagemAtual}</h2>
+              <h2 className="titulo-data">
+                CONTAGEM {dataContagemAtual} {salvandoBanco && <span style={{ fontSize: '0.7rem', color: '#22c55e' }}>(Gravando...)</span>}
+              </h2>
             </div>
 
-            
+            {/* Grid de Salas */}
             <div className="grid-salas">
               {salas.map((sala) => (
                 <div key={sala.id} onClick={() => handleEditarSala(sala)} className="card-sala">
                   <h4 className="sala-nome">{sala.nome}</h4>
                   <p className="sala-qtd">{sala.qtdAlunos} alunos</p>
-                  <p className="sala-qtd-restricao">{sala.qtdRestricao} restrição{Number(sala.qtdRestricao) !== 1 ? 'es' : ''}</p>
+                  <p className="sala-qtd-restricao" style={{ fontSize: '0.75rem', color: '#6b7280', margin: '2px 0 0 0' }}>
+                    {sala.qtdRestricao} restriço{Number(sala.qtdRestricao) !== 1 ? 'es' : ''}
+                  </p>
                 </div>
               ))}
 
@@ -140,7 +233,7 @@ export default function InspetoraHome() {
 
             <div className="linha-divisoria-azul"></div>
 
-            {/* Mural de Restrições */}
+           
             <div className="area-restricoes-mural">
               <h3 className="titulo-mural-restricao">CONTAGEM {dataContagemAtual}</h3>
               
@@ -148,7 +241,7 @@ export default function InspetoraHome() {
                 {listaRestricoes.length > 0 ? (
                   listaRestricoes.map((s, idx) => (
                     <p key={s.id} className={idx === 1 ? 'texto-restricao sublinhado' : 'texto-restricao'}>
-                      {s.descRestricao}
+                      <strong>{s.nome}:</strong> {s.descRestricao}
                     </p>
                   ))
                 ) : (
@@ -172,7 +265,7 @@ export default function InspetoraHome() {
         </main>
       )}
 
-    
+      
       {modalAberto && salaEmEdicao && (
         <div className="modal-overlay">
           <div className="modal-card-sala">
@@ -211,34 +304,50 @@ export default function InspetoraHome() {
               </div>
             )}
 
+          
             <div className="preview-cardapio-box">
               <div className="subtitulo-preview">
-                <h4>CARDÁPIO CEI</h4>
-                <p>CRIANÇAS DE 6 A 12 MESES</p>
+                <h4>{cardapioReal ? cardapioReal.titulo || "CARDÁPIO DO DIA" : "CARDÁPIO ESCOLAR"}</h4>
+                <p>REFEIÇÕES CADASTRADAS NO SISTEMA</p>
               </div>
 
               <div className="tabela-mini">
                 <div className="tabela-mini-topo">
-                  <span>SEGUNDA-FEIRA</span>
-                  <span>06/07/2026</span>
+                  <span>{cardapioReal?.dias?.[0]?.dia || "DIA ATUAL"}</span>
+                  <span>{dataContagemAtual}</span>
                 </div>
                 <div className="tabela-mini-corpo">
-                  <div className="linha-mini"><span className="col-tipo">DESJEJUM</span><span className="col-desc">Mamadeira com fórmula</span></div>
-                  <div className="linha-mini"><span className="col-tipo">COLAÇÃO*</span><span className="col-desc">Fruta</span></div>
-                  <div className="linha-mini"><span className="col-tipo">ALMOÇO</span><span className="col-desc">Arroz papa, Caldo de feijão, Frango desfiado, e Legumes<br/><br/>Sobremesa: Fruta</span></div>
+                  {cardapioReal && cardapioReal.dias && cardapioReal.dias[0]?.refeicoes ? (
+                    cardapioReal.dias[0].refeicoes.map((ref: any) => (
+                      <div key={ref.id} className="linha-mini">
+                        <span className="col-tipo">{ref.tipo}</span>
+                        <span className="col-desc">{ref.descricao}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="linha-mini">
+                      <span className="col-desc" style={{ width: '100%', textAlign: 'center', padding: '12px' }}>
+                        Nenhuma refeição cadastrada para este dia.
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="modal-botoes-sala">
-              <button onClick={() => setModalAberto(false)} className="btn-cancelar-azul">CANCELAR</button>
-              <button onClick={handleSalvarSala} className="btn-adicionar-verde">ADICIONAR</button>
+              <button onClick={() => setModalAberto(false)} className="btn-cancelar-azul">
+                CANCELAR
+              </button>
+              <button onClick={handleSalvarSala} disabled={salvandoBanco} className="btn-adicionar-verde">
+                {salvandoBanco ? 'SALVANDO...' : 'ADICIONAR'}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      
+    
       <nav className="nav-inferior-inspetora">
         <button onClick={() => setAbaNav('escola')} className={`nav-item ${abaNav === 'escola' ? 'ativo' : ''}`}>
           {abaNav === 'escola' && <span className="barra-ativa"></span>}
