@@ -220,8 +220,8 @@ model ItemEstoque {
   produtoId   String
   produto     Produto @relation(fields: [produtoId], references: [id])
 
-  lote        String?
-  validade    DateTime?
+  lote        String
+  validade    DateTime
 
   quantidade  Float
   unidade     String @default("kg")
