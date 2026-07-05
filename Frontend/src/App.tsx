@@ -7,8 +7,11 @@ import MainLayout from "./layouts/MainLayout";
 import NutricionistaCardapios from "./pages/nutricionista/nutricionista";
 import Inspetor from "./pages/inspetor/inspetor";
 
+
+
 export default function App() {
     return (
+        
         <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/secretaria" element={<Secretaria />} />

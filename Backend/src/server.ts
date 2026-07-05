@@ -20,7 +20,7 @@ import itemEstoqueRouter from "./routes/estoque/itemEstoque.js";
 import produtoRouter from "./routes/estoque/produto.js";
 
 import estoqueControllerRouter from "./controllers/estoque.controller.js"
-
+import notificacoesRouter from "./routes/notificacoes.js";
 import authRouter from "./routes/auth.js";
 
 
@@ -30,7 +30,7 @@ export const app = express()
 
 app.use(cors())
 app.use(express.json())
-
+app.use("/notificacoes", notificacoesRouter);
 dotenv.config()
 
 const PORT = process.env.DB_PORT
