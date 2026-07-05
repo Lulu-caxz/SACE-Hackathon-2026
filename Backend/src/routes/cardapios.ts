@@ -3,15 +3,23 @@ import { Router } from "express";
 
 const router = Router();
 
-// buscar todos
+
+// buscar todos (trazendo dias, refeicoes E informações nutricionais)
 router.get("/", async (req, res) => {
     try {
         const cardapios = await prisma.cardapioSemanal.findMany({
             include: {
-                dias: true,
+                dias: {
+                    include: {
+                        refeicoes: {
+                            include: {
+                                nutricionais: true, // <-- TRAZ KCAL, MACROS E DIETAS!
+                            },
+                        },
+                    },
+                },
             },
         });
-
         res.json(cardapios);
     } catch (error) {
         res.status(500).json(error);
@@ -22,20 +30,20 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
     try {
         const { id } = req.params;
-
         const cardapio = await prisma.cardapioSemanal.findUnique({
-            where: {
-                id,
-            },
+            where: { id },
             include: {
                 dias: {
                     include: {
-                        refeicoes: true,
+                        refeicoes: {
+                            include: {
+                                nutricionais: true, // <-- AQUI TAMBÉM!
+                            },
+                        },
                     },
                 },
             },
         });
-
         res.json(cardapio);
     } catch (error) {
         res.status(500).json(error);

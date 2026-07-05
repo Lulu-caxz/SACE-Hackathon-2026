@@ -93,6 +93,7 @@ model CardapioSemanal {
   semana   DateTime @db.Date
   criadoEm DateTime @default(now())
   status   String   @default("Esperando")
+  motivoReprovacao String?  @db.Text
   dias     CardapioDia[]
 
   @@map("cardapios_semanais")

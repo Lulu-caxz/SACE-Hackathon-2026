@@ -9,7 +9,7 @@ router.get("/", async (req, res) => {
         const referencias = await prisma.referenciaNutricional.findMany();
         res.json(referencias);
     } catch (error) {
-        res.json(error);
+        res.status(500).json(error);
     }
 });
 
@@ -26,7 +26,7 @@ router.get("/:id", async (req, res) => {
 
         res.json(referencia);
     } catch (error) {
-        res.json(error);
+        res.status(500).json(error);
     }
 });
 
@@ -49,21 +49,21 @@ router.post("/criar", async (req, res) => {
         const referencia = await prisma.referenciaNutricional.create({
             data: {
                 faixaEtaria,
-                dieta,
-                kcalAlvo,
-                choMin,
-                choMax,
-                ptnMin,
-                ptnMax,
-                lipMin,
-                lipMax,
-                sodioMaxMg,
+                dieta: dieta || "DIETA GERAL",
+                kcalAlvo: Number(kcalAlvo),
+                choMin: Number(choMin),
+                choMax: Number(choMax),
+                ptnMin: Number(ptnMin),
+                ptnMax: Number(ptnMax),
+                lipMin: Number(lipMin),
+                lipMax: Number(lipMax),
+                sodioMaxMg: Number(sodioMaxMg),
             },
         });
 
-        res.json(referencia);
+        res.status(201).json(referencia);
     } catch (error) {
-        res.json(error);
+        res.status(400).json(error);
     }
 });
 
@@ -92,20 +92,20 @@ router.put("/atualizar/:id", async (req, res) => {
             data: {
                 faixaEtaria,
                 dieta,
-                kcalAlvo,
-                choMin,
-                choMax,
-                ptnMin,
-                ptnMax,
-                lipMin,
-                lipMax,
-                sodioMaxMg,
+                kcalAlvo: Number(kcalAlvo),
+                choMin: Number(choMin),
+                choMax: Number(choMax),
+                ptnMin: Number(ptnMin),
+                ptnMax: Number(ptnMax),
+                lipMin: Number(lipMin),
+                lipMax: Number(lipMax),
+                sodioMaxMg: Number(sodioMaxMg),
             },
         });
 
         res.json(referencia);
     } catch (error) {
-        res.json(error);
+        res.status(400).json(error);
     }
 });
 
@@ -122,7 +122,7 @@ router.delete("/deletar/:id", async (req, res) => {
 
         res.json(referencia);
     } catch (error) {
-        res.json(error);
+        res.status(400).json(error);
     }
 });
 

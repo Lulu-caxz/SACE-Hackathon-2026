@@ -317,3 +317,349 @@
   position: absolute; top: -2px; right: -4px; width: 8px; height: 8px;
   background-color: #ff4081; border-radius: 50%; border: 1.5px solid #0b5280;
 }
+
+/* ========================================================
+   ESTILOS DA TELA DE DETALHE DIÁRIO DO CARDÁPIO
+======================================================== */
+.detalhe-cardapio-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px 90px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Linha Superior: Botão Voltar + Título */
+.detalhe-topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn-voltar-simples {
+  background: none;
+  border: none;
+  color: #0b5280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+}
+
+.detalhe-titulo {
+  color: #0b5280;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Botão Download PDF */
+.btn-download-pdf {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #0b5280;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin: 8px auto 16px auto;
+  cursor: pointer;
+}
+
+/* Botões Toggle (CARDÁPIO | VALOR NUTRI.) */
+.toggle-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.btn-toggle {
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-toggle.ativo {
+  background-color: #0b5280;
+  color: #ffffff;
+  border: 2px solid #0b5280;
+}
+
+.btn-toggle.inativo {
+  background-color: #ffffff;
+  color: #0b5280;
+  border: 2px solid #0b5280;
+}
+
+/* Subtítulo Faixa Etária */
+.subtitulo-faixa {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.subtitulo-faixa h3 {
+  color: #0b5280;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.subtitulo-faixa p {
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+/* Tabela dos Dias da Semana */
+.lista-dias {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tabela-dia {
+  border: 2px solid #0b5280;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dia-topo {
+  background-color: #0b5280;
+  color: #ffffff;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.tabela-corpo {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+.linha-refeicao {
+  display: flex;
+  border-top: 1.5px solid #0b5280;
+}
+
+.tabela-corpo .linha-refeicao:first-child {
+  border-top: none;
+}
+
+.coluna-tipo {
+  width: 32%;
+  padding: 10px 6px;
+  color: #0b5280;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  border-right: 1.5px solid #0b5280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coluna-desc {
+  width: 68%;
+  padding: 10px 12px;
+  color: #374151;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.coluna-desc p {
+  margin-top: 6px;
+}
+.coluna-desc p:first-child {
+  margin-top: 0;
+}
+
+
+.area-status-acao {
+  margin-bottom: 16px;
+}
+
+.botoes-aprovar-reprovar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-acao-verde {
+  background-color: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 4px rgba(34, 197, 94, 0.2);
+}
+
+.btn-acao-vermelho {
+  background-color: #ff3b30;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 4px rgba(255, 59, 48, 0.2);
+}
+
+.badge-status-aprovado {
+  background-color: #22c55e;
+  color: white;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+.badge-status-reprovado {
+  background-color: #ff3b30;
+  color: white;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+.texto-motivo-exibicao {
+  color: #ff3b30;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-card {
+  background: white;
+  width: 100%;
+  max-width: 340px;
+  border-radius: 16px;
+  padding: 24px 20px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-titulo {
+  color: #ff3b30;
+  font-size: 1.15rem;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 16px;
+  letter-spacing: 0.05em;
+}
+
+.modal-textarea {
+  width: 100%;
+  height: 190px;
+  border: 2px solid #ff3b30;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 0.85rem;
+  color: #ff3b30;
+  outline: none;
+  resize: none;
+  margin-bottom: 16px;
+}
+
+.modal-textarea::placeholder {
+  color: #fca5a5;
+}
+
+.modal-botoes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-modal-cancelar {
+  background-color: #0b5280;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn-modal-reprovar {
+  background-color: #ff3b30;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+
+.tabela-planilha {
+  border: 2px solid #0072b2;
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 0.72rem;
+}
+
+.planilha-cabecalho {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1.2fr;
+  background-color: white;
+  border-bottom: 2px solid #0072b2;
+  font-weight: 800;
+  color: #0072b2;
+  text-align: center;
+  padding: 8px 2px;
+}
+
+.planilha-linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1.2fr;
+  text-align: center;
+  border-bottom: 1px solid #0072b2;
+  color: #0072b2;
+  padding: 8px 2px;
+}
+
+.planilha-linha:last-child {
+  border-bottom: none;
+}
+
+.planilha-dia {
+  font-weight: 800;
+}

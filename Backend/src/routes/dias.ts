@@ -10,13 +10,13 @@ router.get("/", async (req, res) => {
             include: {
                 cardapio: true,
                 refeicoes: true,
-                diario: true,
+                registro: true, // <-- CORRIGIDO AQUI!
             },
         });
 
         res.json(dias);
     } catch (error) {
-        res.json(error);
+        res.status(500).json(error);
     }
 });
 
@@ -32,13 +32,13 @@ router.get("/:id", async (req, res) => {
             include: {
                 cardapio: true,
                 refeicoes: true,
-                diario: true,
+                registro: true, // <-- CORRIGIDO AQUI!
             },
         });
 
         res.json(dia);
     } catch (error) {
-        res.json(error);
+        res.status(500).json(error);
     }
 });
 
@@ -57,9 +57,9 @@ router.post("/criar", async (req, res) => {
             },
         });
 
-        res.json(cardapioDia);
+        res.status(201).json(cardapioDia);
     } catch (error) {
-        res.json(error);
+        res.status(400).json(error);
     }
 });
 
@@ -85,7 +85,7 @@ router.put("/atualizar/:id", async (req, res) => {
 
         res.json(cardapioDia);
     } catch (error) {
-        res.json(error);
+        res.status(400).json(error);
     }
 });
 
@@ -102,7 +102,7 @@ router.delete("/deletar/:id", async (req, res) => {
 
         res.json(cardapioDia);
     } catch (error) {
-        res.json(error);
+        res.status(400).json(error);
     }
 });
 
