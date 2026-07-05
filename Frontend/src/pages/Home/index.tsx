@@ -48,10 +48,10 @@ export default function Home() {
 
         if (resposta.ok) {
             localStorage.setItem("token", data.token)
-            console.log(data.usuario)
+            console.log(data)
 
         } else {
-            console.log(data.message)
+            console.log(data)
         }
     }
 

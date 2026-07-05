@@ -15,6 +15,10 @@ router.post("/login", async (req, res) => {
             },
         })
 
+        console.log("CPF:", cpf);
+        console.log("ROLE:", role);
+        console.log("USER:", usuario);
+
         if (!usuario) {
             return res.json({ message: "nao achou o usuario" })
         }
@@ -25,7 +29,12 @@ router.post("/login", async (req, res) => {
         const senhaCerta = await bcrypt.compare(password, usuario.password)
 
         if (!senhaCerta) {
+
             return res.json({ message: "senha errada" })
+        }
+
+        if (!process.env.JWT_SECRET) {
+            throw new Error("JWT_SECRET não definido no .env");
         }
 
         const token = jwt.sign(
@@ -33,13 +42,18 @@ router.post("/login", async (req, res) => {
                 id: usuario.id,
                 role: usuario.role,
             },
-            process.env.JWT_SECRET!,
+            process.env.JWT_SECRET,
             {
                 expiresIn: "1d",
             }
-        )
+        );
+        console.log({
+            token,
+            usuario
+        });
 
-        res.json({ token, usuario })
+        res.json({ token, usuario, message: "login feito com sucesso" })
+
 
     } catch (error) {
         res.json(error)
