@@ -19,6 +19,8 @@ import estoqueRouter from "./routes/estoque/estoque.js";
 import itemEstoqueRouter from "./routes/estoque/itemEstoque.js";
 import produtoRouter from "./routes/estoque/produto.js";
 
+import estoqueControllerRouter from "./controllers/estoque.controller.js"
+
 import authRouter from "./routes/auth.js";
 
 
@@ -51,6 +53,8 @@ app.use("/dias", diasRouter)
 app.use("/estoque", estoqueRouter)
 app.use("/itemEstoque", itemEstoqueRouter)
 app.use("/produto", produtoRouter)
+
+app.use("/estoqueController", estoqueControllerRouter)
 
 app.use("/auth", authRouter)
 
