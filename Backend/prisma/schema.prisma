@@ -41,28 +41,27 @@ enum FaixaEtaria {
 }
 
 model Escola {
-  id        String @id @default(uuid())
-  nome      String
+  id       String @id @default(uuid())
+  nome     String
 
-  usuarios  Usuario[]
-  cardapios CardapioSemanal[]
+  usuarios Usuario[]
 
   @@map("escolas")
 }
 
 model Usuario {
-  id        String @id @default(uuid())
+  id       String @id @default(uuid())
 
-  role      Role
+  role     Role
 
-  nome      String
-  email     String @unique
-  password  String
+  nome     String
+  email    String @unique
+  password String
 
-  cpf       String @unique @db.VarChar(11)
+  cpf      String @unique @db.VarChar(11)
 
-  escolaId  String?
-  escola    Escola? @relation(fields: [escolaId], references: [id])
+  escolaId String?
+  escola   Escola? @relation(fields: [escolaId], references: [id])
 
   registrosInspecao RegistroInspecao[]
 
@@ -87,23 +86,20 @@ model ReferenciaNutricional {
 }
 
 model CardapioSemanal {
-  id        String @id @default(uuid())
+  id       String   @id @default(uuid())
 
-  escolaId  String
-  escola    Escola @relation(fields: [escolaId], references: [id])
-
-  mes       Int
-  ano       Int
-  semana    DateTime @db.Date
-  criadoEm  DateTime @default(now())
-
-  dias      CardapioDia[]
+  mes      Int
+  ano      Int
+  semana   DateTime @db.Date
+  criadoEm DateTime @default(now())
+  status   String   @default("Esperando")
+  dias     CardapioDia[]
 
   @@map("cardapios_semanais")
 }
 
 model CardapioDia {
-  id         String @id @default(uuid())
+  id         String          @id @default(uuid())
 
   cardapioId String
   cardapio   CardapioSemanal @relation(fields: [cardapioId], references: [id], onDelete: Cascade)
@@ -111,15 +107,13 @@ model CardapioDia {
   dia        DiaSemana
 
   refeicoes  Refeicao[]
-
-
   registro   RegistroInspecao?
 
   @@map("cardapios_dias")
 }
 
 model Refeicao {
-  id            String @id @default(uuid())
+  id            String      @id @default(uuid())
 
   cardapioDiaId String
   cardapioDia   CardapioDia @relation(fields: [cardapioDiaId], references: [id], onDelete: Cascade)
@@ -164,12 +158,8 @@ model RegistroInspecao {
 
   data            DateTime    @db.Date
 
-
   alunosPresentes Int
-
-
   pratosServidos  Int
-
 
   comidaFeitaKg   Float
   sobraKg         Float

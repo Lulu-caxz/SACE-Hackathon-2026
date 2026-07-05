@@ -8,14 +8,13 @@ router.get("/", async (req, res) => {
     try {
         const cardapios = await prisma.cardapioSemanal.findMany({
             include: {
-                escola: true,
                 dias: true,
             },
         });
 
         res.json(cardapios);
     } catch (error) {
-        res.json(error);
+        res.status(500).json(error);
     }
 });
 
@@ -29,7 +28,6 @@ router.get("/:id", async (req, res) => {
                 id,
             },
             include: {
-                escola: true,
                 dias: {
                     include: {
                         refeicoes: true,
@@ -40,7 +38,7 @@ router.get("/:id", async (req, res) => {
 
         res.json(cardapio);
     } catch (error) {
-        res.json(error);
+        res.status(500).json(error);
     }
 });
 
@@ -48,24 +46,24 @@ router.get("/:id", async (req, res) => {
 router.post("/criar", async (req, res) => {
     try {
         const {
-            escolaId,
             mes,
             ano,
             semana,
+            status,
         } = req.body;
 
         const cardapio = await prisma.cardapioSemanal.create({
             data: {
-                escolaId,
-                mes,
-                ano,
+                mes: Number(mes),
+                ano: Number(ano),
                 semana: new Date(semana),
+                status: status || "Esperando",
             },
         });
 
-        res.json(cardapio);
+        res.status(201).json(cardapio);
     } catch (error) {
-        res.json(error);
+        res.status(400).json(error);
     }
 });
 
@@ -75,10 +73,10 @@ router.put("/atualizar/:id", async (req, res) => {
         const { id } = req.params;
 
         const {
-            escolaId,
             mes,
             ano,
             semana,
+            status,
         } = req.body;
 
         const cardapio = await prisma.cardapioSemanal.update({
@@ -86,16 +84,16 @@ router.put("/atualizar/:id", async (req, res) => {
                 id,
             },
             data: {
-                escolaId,
-                mes,
-                ano,
+                mes: Number(mes),
+                ano: Number(ano),
                 semana: new Date(semana),
+                status,
             },
         });
 
         res.json(cardapio);
     } catch (error) {
-        res.json(error);
+        res.status(400).json(error);
     }
 });
 
@@ -112,7 +110,7 @@ router.delete("/deletar/:id", async (req, res) => {
 
         res.json(cardapio);
     } catch (error) {
-        res.json(error);
+        res.status(400).json(error);
     }
 });
 
