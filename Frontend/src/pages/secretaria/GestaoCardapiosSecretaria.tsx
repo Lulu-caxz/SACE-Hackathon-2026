@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Check, X, Eye, AlertCircle } from 'lucide-react';
+import { api } from "../../services/api";
 
-const API_URL = 'http://localhost:3001';
+const API_URL = api.defaults.baseURL!;
 
 interface Refeicao {
     id: string;

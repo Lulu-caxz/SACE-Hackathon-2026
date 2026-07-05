@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { GraduationCap, LogOut, ArrowLeft, Plus } from 'lucide-react';
 import './inspetor.css';
+import { api } from "../../services/api";
 
-const API_URL = 'http://localhost:3001';
+const API_URL = api.defaults.baseURL!;
 
 interface ContagemHistorica {
   id: string | number;

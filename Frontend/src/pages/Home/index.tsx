@@ -2,6 +2,9 @@ import "./index.css";
 import ArrowIcon from "../../assets/icons/arrow.svg";
 import { useState, useEffect } from "react";
 import Cardapio from "./components/cardapio";
+import { api } from "../../services/api";
+
+const API_URL = api.defaults.baseURL!;
 
 export default function Home() {
     const [typeLogin, setTypeLogin] = useState("");
@@ -27,7 +30,7 @@ export default function Home() {
     async function buscarCardapioOficial() {
         try {
             setCarregandoCardapio(true);
-            const resposta = await fetch("http://localhost:3001/cardapios/oficial/atual");
+            const resposta = await fetch(`http://${API_URL}/cardapios/oficial/atual`);
             if (resposta.ok) {
                 const data = await resposta.json();
                 console.log("🔥 Cardápio Oficial Aprovado carregado no Login:", data);
@@ -49,7 +52,7 @@ export default function Home() {
 
     async function login() {
         try {
-            const resposta = await fetch("http://localhost:3001/auth/login", {
+            const resposta = await fetch(`http://${API_URL}/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

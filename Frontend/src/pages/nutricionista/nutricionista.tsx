@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, X, LogOut, Bell } from 'lucide-react';
 import './nutricionista.css';
+import { api } from "../../services/api";
 
-const API_URL = 'http://localhost:3001';
+const API_URL = api.defaults.baseURL!;
 
 const DIAS_SEMANA = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira'];
 const REFEICOES_PADRAO = ['DESJEJUM', 'COLAÇÃO', 'ALMOÇO', 'LANCHE', 'JANTAR'];

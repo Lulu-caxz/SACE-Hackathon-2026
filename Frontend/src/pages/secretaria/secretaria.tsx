@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Search, GraduationCap, Calendar, LogOut, ArrowLeft, Download } from 'lucide-react';
 import './secretaria.css';
+import { api } from "../../services/api";
 
-const API_URL = 'http://localhost:3001';
+const API_URL = api.defaults.baseURL!;
 const CORES_ESCOLAS = ['cor-vermelho', 'cor-azul-medio', 'cor-azul-escuro', 'cor-azul-medio', 'cor-azul-escuro'];
 
 interface Escola {
