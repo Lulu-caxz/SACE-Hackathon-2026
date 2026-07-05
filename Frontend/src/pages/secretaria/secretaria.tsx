@@ -167,6 +167,7 @@ export default function SelecaoEscola() {
 
   const handleAprovar = async () => {
     if (!cardapioSelecionado) return;
+    
     try {
       setAtualizandoStatus(true);
       const res = await fetch(`${API_URL}/cardapios/atualizar/${cardapioSelecionado.id}`, {
@@ -174,29 +175,55 @@ export default function SelecaoEscola() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'Aprovado' })
       });
+
       if (res.ok) {
         const atualizado = { ...cardapioSelecionado, status: 'Aprovado' };
         setCardapioSelecionado(atualizado);
         setCardapios(prev => prev.map(c => c.id === atualizado.id ? atualizado : c));
+      } else {
+        const erroMsg = await res.text();
+        console.error("Erro retornado pelo servidor ao aprovar:", erroMsg);
+        alert("Não foi possível aprovar o cardápio no banco de dados. Verifique o terminal do Back-end!");
       }
-    } catch (err) { console.error(err); } finally { setAtualizandoStatus(false); }
+    } catch (err) { 
+      console.error("Erro de conexão ao aprovar:", err); 
+      alert("Erro ao conectar com o servidor para aprovar o cardápio.");
+    } finally { 
+      setAtualizandoStatus(false); 
+    }
   };
 
+  // REPROVAR CARDÁPIO
   const handleConfirmarReprovacao = async () => {
-    if (!cardapioSelecionado || !textoMotivo.trim()) return;
+    if (!cardapioSelecionado || !textoMotivo.trim()) {
+      alert("Escreva o motivo da reprovação!");
+      return;
+    }
+
     try {
       setAtualizandoStatus(true);
-      await fetch(`${API_URL}/cardapios/atualizar/${cardapioSelecionado.id}`, {
+      const res = await fetch(`${API_URL}/cardapios/atualizar/${cardapioSelecionado.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'Reprovado', motivoReprovacao: textoMotivo })
       });
-      const atualizado = { ...cardapioSelecionado, status: 'Reprovado', motivoReprovacao: textoMotivo };
-      setCardapioSelecionado(atualizado);
-      setCardapios(prev => prev.map(c => c.id === atualizado.id ? atualizado : c));
-      setModalReprovarAberto(false);
-      setTextoMotivo('');
-    } catch (err) { console.error(err); } finally { setAtualizandoStatus(false); }
+
+      if (res.ok) {
+        const atualizado = { ...cardapioSelecionado, status: 'Reprovado', motivoReprovacao: textoMotivo };
+        setCardapioSelecionado(atualizado);
+        setCardapios(prev => prev.map(c => c.id === atualizado.id ? atualizado : c));
+        setModalReprovarAberto(false);
+        setTextoMotivo('');
+      } else {
+        const erroMsg = await res.text();
+        console.error("Erro retornado pelo servidor ao reprovar:", erroMsg);
+        alert("Não foi possível reprovar o cardápio no banco de dados.");
+      }
+    } catch (err) { 
+      console.error("Erro de conexão ao reprovar:", err); 
+    } finally { 
+      setAtualizandoStatus(false); 
+    }
   };
 
   const escolasFiltradas = escolas.filter((escola) => (escola.nome || escola.name || '').toLowerCase().includes(busca.toLowerCase()));

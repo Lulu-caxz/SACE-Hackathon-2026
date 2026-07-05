@@ -4,21 +4,18 @@ import { Router } from "express";
 const router = Router();
 
 
-// buscar todos (trazendo dias, refeicoes E informações nutricionais)
+
 router.get("/", async (req, res) => {
     try {
+
         const cardapios = await prisma.cardapioSemanal.findMany({
             include: {
                 dias: {
                     include: {
-                        refeicoes: {
-                            include: {
-                                nutricionais: true, // <-- TRAZ KCAL, MACROS E DIETAS!
-                            },
-                        },
-                    },
-                },
-            },
+                        refeicoes: true
+                    }
+                }
+            }
         });
         res.json(cardapios);
     } catch (error) {
@@ -75,33 +72,25 @@ router.post("/criar", async (req, res) => {
     }
 });
 
-// atualizar
+
 router.put("/atualizar/:id", async (req, res) => {
     try {
         const { id } = req.params;
+        const { status, motivoReprovacao } = req.body;
 
-        const {
-            mes,
-            ano,
-            semana,
-            status,
-        } = req.body;
-
-        const cardapio = await prisma.cardapioSemanal.update({
-            where: {
-                id,
-            },
+       
+        const cardapioAtualizado = await prisma.cardapioSemanal.update({
+            where: { id },
             data: {
-                mes: Number(mes),
-                ano: Number(ano),
-                semana: new Date(semana),
                 status,
-            },
+                motivoReprovacao: motivoReprovacao || null,
+            }
         });
 
-        res.json(cardapio);
+        res.json(cardapioAtualizado);
     } catch (error) {
-        res.status(400).json(error);
+        console.error("Erro ao atualizar status do cardápio:", error);
+        res.status(500).json({ error: "Erro ao atualizar cardápio no banco." });
     }
 });
 
