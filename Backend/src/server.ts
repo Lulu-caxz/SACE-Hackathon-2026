@@ -16,6 +16,8 @@ import diariosRouter from "./routes/diarios.js";
 import nutricionaisRouter from "./routes/nutricionais.js";
 import diasRouter from "./routes/dias.js";
 
+import authRouter from "./routes/auth.js";
+
 
 //==============================//
 
@@ -42,6 +44,8 @@ app.use("/cardapios", cardapiosRouter)
 app.use("/diarios", diariosRouter)
 app.use("/nutricionais", nutricionaisRouter)
 app.use("/dias", diasRouter)
+
+app.use("/auth", authRouter)
 
 //==============================//
 

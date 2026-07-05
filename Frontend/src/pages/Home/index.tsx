@@ -2,10 +2,14 @@ import "./index.css";
 import ArrowIcon from "../../assets/icons/arrow.svg";
 import { useState } from "react";
 import Cardapio from "./components/cardapio";
+import { useEffect } from "react";
 
 export default function Home() {
     const [typeLogin, setTypeLogin] = useState("");
     const [isOpen, setIsOpen] = useState(false);
+
+    const [cpf, setCpf] = useState("");
+    const [password, setPassword] = useState("");
 
     const options = [
         {
@@ -25,6 +29,30 @@ export default function Home() {
     function selectOption(option) {
         setTypeLogin(option.value);
         setIsOpen(false);
+    }
+
+    async function login() {
+        const resposta = await fetch("http://localhost:3001/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                cpf,
+                password,
+                role: typeLogin,
+            })
+        })
+
+        const data = await resposta.json()
+
+        if (resposta.ok) {
+            localStorage.setItem("token", data.token)
+            console.log(data.usuario)
+
+        } else {
+            console.log(data.message)
+        }
     }
 
     return (
@@ -94,6 +122,8 @@ export default function Home() {
                                 <input
                                     type="text"
                                     placeholder="123.456.789-12"
+                                    value={cpf}
+                                    onChange={(e) => setCpf(e.target.value)}
                                 />
                             </div>
 
@@ -105,10 +135,12 @@ export default function Home() {
                                 <input
                                     type="password"
                                     placeholder="********"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                 />
                             </div>
 
-                            <button className="btn-login">
+                            <button className="btn-login" onClick={login}>
                                 ENTRAR
                             </button>
                         </>
@@ -121,7 +153,7 @@ export default function Home() {
                     de Educação de Caraguatatuba.
                 </div>
             </div>
-            
+
             <div className="container-card">
                 <div className="card">
                     <Cardapio
