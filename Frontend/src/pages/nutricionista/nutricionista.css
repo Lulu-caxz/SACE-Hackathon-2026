@@ -57,7 +57,7 @@
   align-items: center;
   padding: 14px 0;
   flex-shrink: 0;
-  border-top: 1px solid #1e3a8a;
+  border-top: 3px solid #1e3a8a;
 }
 
 .nav-item {
@@ -130,7 +130,7 @@
 }
 
 .btn-criar-cardapio {
-  margin: 4px 16px 16px 16px;
+  margin: 4px 16px 80px 16px;
   padding: 14px;
   background-color: #0b5280;
   color: #ffffff;
@@ -173,6 +173,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.02em;
+  font-family: "Montserrat";
 }
 
 /* ========================================================
@@ -180,11 +181,13 @@
 ======================================================== */
 .criacao-area {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto; /* Garante que a rolagem vertical funcione aqui dentro */
   padding: 16px 16px 24px 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;   /* CRUCIAL: impede que o container flexível estoure o tamanho do pai */
+  margin-bottom: 80px;
 }
 
 .periodo-grid {
@@ -207,36 +210,40 @@
 }
 
 .input-data {
-  border: 2px solid #0b5280;
+  border: 3px solid #0b5280;
   border-radius: 8px;
   padding: 8px;
   font-size: 0.8rem;
   color: #0b5280;
   outline: none;
-  font-family: inherit;
+  font-family: "Montserrat";
 }
 
 .titulo-cardapio-criacao {
   text-align: center;
   color: #0b5280;
   font-weight: 800;
-  font-size: 1.05rem;
+  font-size: 18px;
+  font-family: "gunters medium";
 }
 
 .subtitulo-cardapio-criacao {
   text-align: center;
   color: #6b7280;
-  font-size: 0.72rem;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
-  margin-top: -12px;
+  margin-top: 0px;
 }
 
 /* Bloco de cada dia */
 .dia-bloco {
-  border: 2px solid #0b5280;
-  border-radius: 8px;
-  overflow: hidden;
+  border: 3px solid #0b5280;
+  border-radius: 10px;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  /* overflow: hidden;  <- PODE REMOVER OU COMENTAR ESTA LINHA */
 }
 
 .dia-bloco-cabecalho {
@@ -281,7 +288,6 @@
 .tabela-refeicoes {
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
 }
 
 .linha-refeicao-input {
@@ -304,8 +310,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  border-right: 1.5px solid #0b5280;
-  background-color: #f8fafc;
+  border-right: 3px solid #0b5280; /* Aumente aqui também (estava 1.5px) */
 }
 
 .input-tipo-refeicao {
@@ -318,12 +323,16 @@
   font-weight: 700;
   color: #0b5280;
   text-transform: uppercase;
-  font-family: inherit;
+  font-family: "Montserrat";
 }
 
 .celula-input-refeicao {
   width: 66%;
   display: flex;
+  align-items: center; /* Centraliza o texto verticalmente */
+  font-size: 0.8rem;
+  color: #374151;
+  word-break: break-word; /* Evita que textos longos quebrem o layout */
 }
 
 .input-refeicao {
@@ -333,7 +342,7 @@
   padding: 8px 10px;
   font-size: 0.8rem;
   color: #374151;
-  font-family: inherit;
+  font-family: "Montserrat";
 }
 
 .input-refeicao:focus,
@@ -353,13 +362,13 @@
 
 /* Seção valor nutricional */
 .secao-nutricional-criacao {
-  border: 2px solid #0072b2;
+  border: 3px solid #0b5280;
   border-radius: 8px;
-  overflow: hidden;
+  height: 1000px;
 }
 
 .nutricional-cabecalho-criacao {
-  background-color: #0072b2;
+  background-color: #0b5280;
   color: #ffffff;
   display: flex;
   justify-content: space-between;
@@ -383,13 +392,13 @@
   color: #0072b2;
   font-weight: 800;
   font-size: 0.64rem;
-  border-bottom: 2px solid #0072b2;
-  padding: 6px 2px;
+  border-bottom: 3px solid #0072b2;
+  padding: 6px 3px;
 }
 
 .linha-nutricional-dados {
-  border-bottom: 1px solid #0072b2;
-  padding: 4px 2px;
+  border-bottom: 3px solid #0072b2;
+  padding: 4px 3px;
 }
 
 .linha-nutricional-dados:last-child {
@@ -404,15 +413,15 @@
 
 .input-nutricional {
   width: 88%;
-  border: 1px solid #cbd5e1;
+  border: 3px solid #cbd5e1;
   border-radius: 4px;
   text-align: center;
   font-size: 0.66rem;
-  padding: 4px 2px;
+  padding: 4px 3px;
   color: #0072b2;
   outline: none;
   margin: 0 auto;
-  font-family: inherit;
+  font-family: "Montserrat";
 }
 
 .input-nutricional:focus {
@@ -457,4 +466,193 @@
 .btn-cancelar-form:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.linha-refeicao-input {
+  display: flex;
+  border-top: 3px solid #0b5280; /* Aumente aqui (estava 1.5px) */
+  align-items: stretch;
+}
+
+/* Fundo escuro */
+
+.modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    z-index:999;
+}
+
+/* Caixa branca */
+
+.modal-cardapio{
+
+    width:92%;
+    max-width:390px;
+
+    background:#fff;
+
+    border-radius:10px;
+
+    padding:22px;
+
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+/* Cabeçalho */
+
+.modal-topo{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.modal-topo h2{
+
+    color:#0b5280;
+    font-size:30px;
+    font-weight:800;
+    font-family:"gunters medium";
+}
+
+.modal-topo span{
+
+    color:#0b5280;
+    font-size:15px;
+}
+
+/* Lista */
+
+.modal-refeicoes{
+
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+
+    max-height:50vh;
+    overflow-y:auto;
+
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+}
+
+.modal-refeicoes::-webkit-scrollbar{
+    display:none;
+}
+
+.modal-refeicao label{
+
+    color:#0b5280;
+
+    font-size:18px;
+
+    font-weight:600;
+
+    font-family:"Montserrat";
+}
+
+/* Botão azul */
+
+.btn-add-refeicao{
+
+    width:100%;
+
+    height:48px;
+
+    border:none;
+
+    border-radius:6px;
+
+    background:#0b5280;
+
+    color:white;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.btn-add-refeicao:hover{
+
+    background:#0a4870;
+}
+
+.btn-add-refeicao:active{
+
+    transform:scale(.98);
+}
+
+/* Botões inferiores */
+
+.modal-botoes{
+
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+
+    margin-top:10px;
+}
+
+.modal-botoes button{
+
+    height:46px;
+
+    font-size:18px;
+
+    font-weight:700;
+}
+
+.campo-refeicao{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.select-alimento{
+
+    width:100%;
+    height:45px;
+
+    border:3px solid #0b5280;
+
+    border-radius:8px;
+
+    padding:0 12px;
+
+    font-size:15px;
+
+    color:#0b5280;
+
+    font-family:"Montserrat";
+
+    background:white;
+
+    outline:none;
+}
+
+.item-alimento{
+
+    border:3px solid #0b5280;
+
+    border-radius:8px;
+
+    padding:10px 12px;
+
+    color:#0b5280;
+
+    font-family:"Montserrat";
+
+    background:white;
 }
