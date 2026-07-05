@@ -1,0 +1,460 @@
+/* ========================================================
+   NUTRICIONISTA - LISTA DE CARDÁPIOS + CRIAÇÃO DE CARDÁPIO
+======================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-height: 100vh;
+  max-width: 420px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.cabecalho {
+  background-color: #0b5280;
+  color: #ffffff;
+  padding: 32px 24px 16px 24px;
+  flex-shrink: 0;
+}
+
+.cabecalho-texto h1 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.cabecalho-texto p {
+  font-size: 0.75rem;
+  color: #bfdbfe;
+}
+
+.msg-vazio {
+  text-align: center;
+  color: #9ca3af;
+  padding: 32px 0;
+  font-size: 0.875rem;
+}
+
+/* ========================================================
+   NAV INFERIOR
+======================================================== */
+.nav-inferior {
+  background-color: #0b5280;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 0;
+  flex-shrink: 0;
+  border-top: 1px solid #1e3a8a;
+}
+
+.nav-item {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 16px;
+}
+
+/* ========================================================
+   LISTA DE CARDÁPIOS
+======================================================== */
+.lista-cardapios-nutri {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-cardapio-nutri {
+  border: 1.5px solid #0b5280;
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: transform 0.1s;
+  text-align: left;
+}
+
+.card-cardapio-nutri:active {
+  transform: scale(0.99);
+}
+
+.card-cardapio-nutri.reprovado {
+  background-color: #ff3b30;
+  border-color: #ff3b30;
+}
+
+.card-cardapio-titulo {
+  color: #0b5280;
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 6px;
+}
+
+.card-cardapio-nutri.reprovado .card-cardapio-titulo {
+  color: #ffffff;
+}
+
+.card-cardapio-rodape {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  color: #0b5280;
+}
+
+.card-cardapio-nutri.reprovado .card-cardapio-rodape {
+  color: #ffffff;
+}
+
+.card-cardapio-status {
+  font-weight: 700;
+}
+
+.btn-criar-cardapio {
+  margin: 4px 16px 16px 16px;
+  padding: 14px;
+  background-color: #0b5280;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.btn-criar-cardapio:active {
+  transform: scale(0.99);
+}
+
+/* ========================================================
+   TOPO DE TELA COM VOLTAR (reutilizado na criação)
+======================================================== */
+.detalhe-topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.btn-voltar-simples {
+  background: none;
+  border: none;
+  color: #0b5280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+}
+
+.detalhe-titulo {
+  color: #0b5280;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* ========================================================
+   TELA DE CRIAÇÃO DO CARDÁPIO
+======================================================== */
+.criacao-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.periodo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.periodo-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.periodo-label {
+  font-size: 0.68rem;
+  color: #0b5280;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.input-data {
+  border: 2px solid #0b5280;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 0.8rem;
+  color: #0b5280;
+  outline: none;
+  font-family: inherit;
+}
+
+.titulo-cardapio-criacao {
+  text-align: center;
+  color: #0b5280;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.subtitulo-cardapio-criacao {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin-top: -12px;
+}
+
+/* Bloco de cada dia */
+.dia-bloco {
+  border: 2px solid #0b5280;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dia-bloco-cabecalho {
+  background-color: #0b5280;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.dia-bloco-cabecalho-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.dia-bloco-cabecalho-data {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #bfdbfe;
+}
+
+.btn-add-circular {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  color: #0b5280;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.tabela-refeicoes {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+.linha-refeicao-input {
+  display: flex;
+  border-top: 1.5px solid #0b5280;
+  align-items: stretch;
+}
+
+.tabela-refeicoes .linha-refeicao-input:first-child {
+  border-top: none;
+}
+
+.celula-tipo-refeicao {
+  width: 34%;
+  padding: 8px 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0b5280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-right: 1.5px solid #0b5280;
+  background-color: #f8fafc;
+}
+
+.input-tipo-refeicao {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0b5280;
+  text-transform: uppercase;
+  font-family: inherit;
+}
+
+.celula-input-refeicao {
+  width: 66%;
+  display: flex;
+}
+
+.input-refeicao {
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  color: #374151;
+  font-family: inherit;
+}
+
+.input-refeicao:focus,
+.input-tipo-refeicao:focus {
+  background-color: #f0f9ff;
+}
+
+.btn-remover-refeicao {
+  background: none;
+  border: none;
+  color: #ff3b30;
+  cursor: pointer;
+  padding: 0 8px;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+/* Seção valor nutricional */
+.secao-nutricional-criacao {
+  border: 2px solid #0072b2;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.nutricional-cabecalho-criacao {
+  background-color: #0072b2;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+}
+
+.linha-nutricional-cabecalho,
+.linha-nutricional-dados {
+  display: grid;
+  grid-template-columns: 0.7fr repeat(5, 1fr);
+  text-align: center;
+  align-items: center;
+}
+
+.linha-nutricional-cabecalho {
+  background-color: #ffffff;
+  color: #0072b2;
+  font-weight: 800;
+  font-size: 0.64rem;
+  border-bottom: 2px solid #0072b2;
+  padding: 6px 2px;
+}
+
+.linha-nutricional-dados {
+  border-bottom: 1px solid #0072b2;
+  padding: 4px 2px;
+}
+
+.linha-nutricional-dados:last-child {
+  border-bottom: none;
+}
+
+.celula-dia-nutricional {
+  font-weight: 800;
+  color: #0072b2;
+  font-size: 0.72rem;
+}
+
+.input-nutricional {
+  width: 88%;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.66rem;
+  padding: 4px 2px;
+  color: #0072b2;
+  outline: none;
+  margin: 0 auto;
+  font-family: inherit;
+}
+
+.input-nutricional:focus {
+  border-color: #0072b2;
+  background-color: #f0f9ff;
+}
+
+/* Botões finais do formulário */
+.botoes-form-criacao {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btn-cancelar-form {
+  flex: 1;
+  background-color: #0b5280;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+
+.btn-enviar-form {
+  flex: 1;
+  background-color: #22c55e;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+
+.btn-enviar-form:disabled,
+.btn-cancelar-form:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
