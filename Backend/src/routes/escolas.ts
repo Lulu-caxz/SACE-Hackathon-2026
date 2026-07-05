@@ -3,17 +3,17 @@ import { Router } from "express";
 
 const router = Router();
 
-//buscar todas
+
 router.get("/", async (req, res) => {
     try {
         const escolas = await prisma.escola.findMany();
         res.json(escolas);
     } catch (error) {
-        res.json(error);
+        res.status(500).json(error);
     }
-})
+});
 
-//buscar por id
+
 router.get("/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -23,50 +23,62 @@ router.get("/:id", async (req, res) => {
             },
         });
 
-    res.json(escola);
-    } catch (error) {
-        res.json(error);
-    }
-})
-
-//criar 
-router.post("/criar", async (req, res) => {
-    try {
-        const { nome } = req.body;
-
-        const escola = await prisma.escola.create({
-            data: {
-                nome
-            },
-        });
-
         res.json(escola);
     } catch (error) {
-        res.json(error);
+        res.status(500).json(error);
     }
 });
 
-//atualizar
+
+router.post("/criar", async (req, res) => {
+    try {
+        const { nome, bairro, endereco, email, telefone, diretor, supervisor, indiceSace } = req.body;
+
+        const escola = await prisma.escola.create({
+            data: {
+                nome,
+                bairro,
+                endereco,
+                email,
+                telefone,
+                diretor,
+                supervisor,
+            },
+        });
+
+        res.status(201).json(escola);
+    } catch (error) {
+        res.status(400).json(error);
+    }
+});
+
+// atualizar (AGORA ATUALIZANDO TODOS OS CAMPOS!)
 router.put("/atualizar/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const { nome } = req.body;
+        const { nome, bairro, endereco, email, telefone, diretor, supervisor, indiceSace } = req.body;
 
         const escola = await prisma.escola.update({
             where: {
                 id,
             },
             data: {
-                nome
+                nome,
+                bairro,
+                endereco,
+                email,
+                telefone,
+                diretor,
+                supervisor
             },
         });
-    res.json(escola);
+        res.json(escola);
     } catch (error) {
-        res.json(error);
+        res.status(400).json(error);
     }
-})
+});
 
-//deletar
+// deletar
 router.delete("/deletar/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -74,11 +86,11 @@ router.delete("/deletar/:id", async (req, res) => {
             where: {
                 id
             }
-        })
-    res.json(escola);
+        });
+        res.json(escola);
     } catch (error) {
-        res.json(error);
+        res.status(400).json(error);
     }
-})
+});
 
 export default router;
