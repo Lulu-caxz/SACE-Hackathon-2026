@@ -3,7 +3,6 @@ dotenv.config()
 
 import express from "express"
 import cors from "cors";
-import { prisma } from "./lib/prisma.js";
 
 //==============================//
 
@@ -15,6 +14,10 @@ import cardapiosRouter from "./routes/cardapios.js";
 import diariosRouter from "./routes/diarios.js";
 import nutricionaisRouter from "./routes/nutricionais.js";
 import diasRouter from "./routes/dias.js";
+
+import estoqueRouter from "./routes/estoque/estoque.js";
+import itemEstoqueRouter from "./routes/estoque/itemEstoque.js";
+import produtoRouter from "./routes/estoque/produto.js";
 
 import authRouter from "./routes/auth.js";
 
@@ -44,6 +47,10 @@ app.use("/cardapios", cardapiosRouter)
 app.use("/diarios", diariosRouter)
 app.use("/nutricionais", nutricionaisRouter)
 app.use("/dias", diasRouter)
+
+app.use("/estoque", estoqueRouter)
+app.use("/itemEstoque", itemEstoqueRouter)
+app.use("/produto", produtoRouter)
 
 app.use("/auth", authRouter)
 
